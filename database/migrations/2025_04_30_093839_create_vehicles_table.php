@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('type');
             $table->integer('capacity');
             $table->json('facilities');
-            $table->enum('status', ['available', 'maintenance']);
+            $table->enum('status', ['ready', 'maintenance']);
             $table->timestamps();
         });
     }
