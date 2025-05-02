@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    use HasFactory;
     // $table->id();
     // $table->string('name');
     // $table->string('phone_number');
@@ -35,11 +37,14 @@ class Order extends Model
         'route',
         'vehicle_count',
         'vehicle_type',
+        'driver_name',
         'rental_price',
         'down_payment',
         'remaining_cost',
         'status',
         'additional_notes',
+        'user_id',
+        'driver_id',
     ];
 
     protected $casts = [

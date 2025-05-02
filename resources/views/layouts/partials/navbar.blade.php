@@ -42,33 +42,67 @@
                 <!-- Order Management -->
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarOrder" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarOrder">
-                        <i class="mdi mdi-file-document"></i> <span>Order</span>
+                        <i class="mdi mdi-clipboard-text"></i> <span>Order</span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarOrder">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">Order</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">Kalender</a>
-                            </li>
+                            @role('admin')
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.orders.index') }}" class="nav-link">Semua Order</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.orders.calendar') }}" class="nav-link">Kalender Order</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.orders.create') }}" class="nav-link">Buat Order</a>
+                                </li>
+                            @endrole
+
+                            @role('driver')
+                                <li class="nav-item">
+                                    <a href="{{ route('driver.orders.index') }}" class="nav-link">Daftar Order</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('driver.orders.calendar') }}" class="nav-link">Kalender Order</a>
+                                </li>
+                            @endrole
                         </ul>
                     </div>
                 </li>
 
-                <!-- Driver -->
-                <li class="nav-item">
-                    <a class="nav-link menu-link" href="#">
-                        <i class="mdi mdi-file-document"></i> <span>Driver</span>
-                    </a>
-                </li>
+                @role('admin')
+                    <!-- Driver Management -->
+                    <li class="nav-item">
+                        <a class="nav-link menu-link" href="{{ route('admin.drivers.index') }}">
+                            <i class="mdi mdi-account-multiple"></i> <span>Driver</span>
+                        </a>
+                    </li>
 
-                <!-- Armada -->
-                <li class="nav-item">
-                    <a class="nav-link menu-link" href="{{ route('vehicles.index') }}">
-                        <i class="mdi mdi-file-document"></i> <span>Armada</span>
-                    </a>
-                </li>
+                    <!-- Armada Management -->
+                    <li class="nav-item">
+                        <a class="nav-link menu-link" href="{{ route('admin.vehicles.index') }}">
+                            <i class="mdi mdi-car"></i> <span>Armada</span>
+                        </a>
+                    </li>
+                @endrole
+
+                @role('driver')
+                    <!-- Armada Information -->
+                    <li class="nav-item">
+                        <a class="nav-link menu-link" href="{{ route('driver.vehicles.index') }}">
+                            <i class="mdi mdi-car"></i> <span>Armada</span>
+                        </a>
+                    </li>
+                @endrole
+
+                <!-- Payment Report - Only visible to admin -->
+                @role('admin')
+                    <li class="nav-item">
+                        <a class="nav-link menu-link" href="{{ route('admin.payments.index') }}">
+                            <i class="mdi mdi-cash-multiple"></i> <span>Laporan Payment</span>
+                        </a>
+                    </li>
+                @endrole
             </ul>
         </div>
         <!-- Sidebar -->

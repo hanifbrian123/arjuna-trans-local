@@ -25,22 +25,17 @@
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1 overflow-hidden">
-                                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> Total Earnings</p>
-                                    </div>
-                                    <div class="flex-shrink-0">
-                                        <h5 class="text-success fs-14 mb-0">
-                                            <i class="ri-arrow-right-up-line fs-13 align-middle"></i> +16.24 %
-                                        </h5>
+                                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Order Waiting</p>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-end justify-content-between mt-4">
                                     <div>
-                                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">$<span class="counter-value" data-target="559.25">0</span>k </h4>
-                                        <a href="" class="text-decoration-underline">View net earnings</a>
+                                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $orderWaiting }}">0</span></h4>
+                                        <a href="{{ route('orders.admin.index') }}" class="text-decoration-underline">Lihat semua order</a>
                                     </div>
                                     <div class="avatar-sm flex-shrink-0">
-                                        <span class="avatar-title bg-success rounded fs-3">
-                                            <i class="bx bx-dollar-circle"></i>
+                                        <span class="avatar-title bg-primary rounded fs-3">
+                                            <i class="mdi mdi-clipboard-text"></i>
                                         </span>
                                     </div>
                                 </div>
@@ -54,22 +49,17 @@
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1 overflow-hidden">
-                                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Orders</p>
-                                    </div>
-                                    <div class="flex-shrink-0">
-                                        <h5 class="text-danger fs-14 mb-0">
-                                            <i class="ri-arrow-right-down-line fs-13 align-middle"></i> -3.57 %
-                                        </h5>
+                                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Armada</p>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-end justify-content-between mt-4">
                                     <div>
-                                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="36894">0</span></h4>
-                                        <a href="" class="text-decoration-underline">View all orders</a>
+                                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $armadaCount }}">0</span></h4>
+                                        <a href="{{ route('vehicles.index') }}" class="text-decoration-underline">Lihat semua armada</a>
                                     </div>
                                     <div class="avatar-sm flex-shrink-0">
                                         <span class="avatar-title bg-info rounded fs-3">
-                                            <i class="bx bx-shopping-bag"></i>
+                                            <i class="mdi mdi-car"></i>
                                         </span>
                                     </div>
                                 </div>
@@ -83,22 +73,17 @@
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1 overflow-hidden">
-                                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Customers</p>
-                                    </div>
-                                    <div class="flex-shrink-0">
-                                        <h5 class="text-success fs-14 mb-0">
-                                            <i class="ri-arrow-right-up-line fs-13 align-middle"></i> +29.08 %
-                                        </h5>
+                                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Driver</p>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-end justify-content-between mt-4">
                                     <div>
-                                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="183.35">0</span>M </h4>
-                                        <a href="" class="text-decoration-underline">See details</a>
+                                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $driverCount }}">0</span></h4>
+                                        <a href="{{ route('drivers.index') }}" class="text-decoration-underline">Lihat semua driver</a>
                                     </div>
                                     <div class="avatar-sm flex-shrink-0">
                                         <span class="avatar-title bg-warning rounded fs-3">
-                                            <i class="bx bx-user-circle"></i>
+                                            <i class="mdi mdi-account-multiple"></i>
                                         </span>
                                     </div>
                                 </div>
@@ -112,22 +97,17 @@
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1 overflow-hidden">
-                                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0"> My Balance</p>
-                                    </div>
-                                    <div class="flex-shrink-0">
-                                        <h5 class="text-muted fs-14 mb-0">
-                                            +0.00 %
-                                        </h5>
+                                        <p class="text-uppercase fw-medium text-muted text-truncate mb-0">On Trip</p>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-end justify-content-between mt-4">
                                     <div>
-                                        <h4 class="fs-22 fw-semibold ff-secondary mb-4">$<span class="counter-value" data-target="165.89">0</span>k </h4>
-                                        <a href="" class="text-decoration-underline">Withdraw money</a>
+                                        <h4 class="fs-22 fw-semibold ff-secondary mb-4"><span class="counter-value" data-target="{{ $onTripCount }}">0</span></h4>
+                                        <a href="{{ route('orders.admin.index') }}" class="text-decoration-underline">Lihat detail</a>
                                     </div>
                                     <div class="avatar-sm flex-shrink-0">
-                                        <span class="avatar-title bg-danger rounded fs-3">
-                                            <i class="bx bx-wallet"></i>
+                                        <span class="avatar-title bg-success rounded fs-3">
+                                            <i class="mdi mdi-map-marker-distance"></i>
                                         </span>
                                     </div>
                                 </div>

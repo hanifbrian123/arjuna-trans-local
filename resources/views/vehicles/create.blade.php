@@ -122,7 +122,7 @@
                         <!-- Tombol Simpan -->
                         <div class="text-end">
                             <a href="{{ route('vehicles.index') }}" class="btn btn-secondary">Kembali</a>
-                            <button type="submit" class="btn btn-primary">Simpan Armada</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
                         </div>
                     </form>
                 </div>
