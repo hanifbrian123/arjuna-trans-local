@@ -12,20 +12,6 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $permissions = [
-            'manage booking',
-            'booking index',
-            'booking create',
-            'booking show',
-            'booking accept',
-            'booking complete',
-            'booking destroy',
-        ];
-
-        foreach ($permissions as $permission) {
-            \Spatie\Permission\Models\Permission::create(['name' => $permission]);
-        }
-
         $roles = [
             'admin',
             'driver',

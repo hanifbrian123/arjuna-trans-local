@@ -48,9 +48,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function bookings()
+    public function orders()
     {
-        return $this->hasMany(Booking::class, 'customer_id');
+        return $this->hasMany(Order::class);
     }
 
     public function driver()

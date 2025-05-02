@@ -2,8 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DriverController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\BookingController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\VehicleController;
 
 //Public routes
@@ -21,30 +22,30 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard routes - accessible by all authenticated users
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Booking routes with role-based access
-    Route::prefix('bookings')->group(function () {
+    // Order routes with role-based access
+    Route::prefix('orders')->group(function () {
         // Routes accessible by customers
         Route::middleware(['role:customer'])->group(function () {
-            Route::get('/create', [BookingController::class, 'create'])->name('bookings.create');
-            Route::post('/', [BookingController::class, 'store'])->name('bookings.store');
+            Route::get('/create', [OrderController::class, 'create'])->name('orders.create');
+            Route::post('/', [OrderController::class, 'store'])->name('orders.store');
         });
 
         // Routes accessible by customers and drivers
         Route::middleware(['role:customer|driver'])->group(function () {
-            Route::get('/', [BookingController::class, 'index'])->name('bookings.index');
-            Route::get('/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+            Route::get('/', [OrderController::class, 'index'])->name('orders.index');
+            Route::get('/{order}', [OrderController::class, 'show'])->name('orders.show');
         });
 
         // Routes accessible by drivers only
         Route::middleware(['role:driver'])->group(function () {
-            Route::put('/{booking}/accept', [BookingController::class, 'accept'])->name('bookings.accept');
-            Route::put('/{booking}/complete', [BookingController::class, 'complete'])->name('bookings.complete');
+            Route::put('/{order}/accept', [OrderController::class, 'accept'])->name('orders.accept');
+            Route::put('/{order}/complete', [OrderController::class, 'complete'])->name('orders.complete');
         });
 
         // Routes accessible by admin only
         Route::middleware(['role:admin'])->group(function () {
-            Route::get('/all', [BookingController::class, 'adminIndex'])->name('bookings.admin.index');
-            Route::delete('/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+            Route::get('/all', [OrderController::class, 'adminIndex'])->name('orders.admin.index');
+            Route::delete('/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
         });
     });
 
@@ -69,12 +70,6 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['role:admin|driver'])->group(function () {
             Route::get('/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
         });
-    });
-
-    // Admin specific routes
-    Route::middleware(['role:admin'])->prefix('admin')->group(function () {
-        Route::get('/reports', [DashboardController::class, 'reports'])->name('admin.reports');
-        Route::get('/settings', [DashboardController::class, 'settings'])->name('admin.settings');
     });
 });
 

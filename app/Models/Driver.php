@@ -8,21 +8,11 @@ class Driver extends Model
 {
     protected $fillable = [
         'user_id',
-        'license_number',
-        'license_expiry',
-        'phone_number',
-        'emergency_contact',
-        'emergency_phone',
         'address',
-        'birth_date',
-        'experience_years',
-        'health_status',
+        'phone_number',
+        'license_type',
         'status',
-    ];
-
-    protected $casts = [
-        'license_expiry' => 'date',
-        'birth_date' => 'date',
+        'notes',
     ];
 
     public function user()
@@ -30,8 +20,8 @@ class Driver extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function bookings()
+    public function orders()
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Order::class);
     }
 }

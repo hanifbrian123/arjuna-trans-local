@@ -13,16 +13,11 @@ return new class extends Migration {
         Schema::create('drivers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('license_number')->unique();
-            $table->date('license_expiry');
-            $table->string('phone_number');
-            $table->string('emergency_contact');
-            $table->string('emergency_phone');
             $table->text('address');
-            $table->date('birth_date');
-            $table->integer('experience_years');
-            $table->enum('health_status', ['excellent', 'good', 'fair', 'poor']);
-            $table->enum('status', ['available', 'busy', 'off-duty', 'suspended']);
+            $table->string('phone_number');
+            $table->enum('license_type', ['A', 'B', 'C', 'D', 'E']);
+            $table->enum('status', ['active', 'inactive']);
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }

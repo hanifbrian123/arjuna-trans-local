@@ -3,40 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Vehicle extends Model implements HasMedia
+class Vehicle extends Model
 {
-    use InteractsWithMedia;
-
     protected $fillable = [
         'name',
         'type',
         'capacity',
-        'license_plate',
-        'year_of_manufacture',
+        'facilities',
         'status',
-        'daily_rate',
-        'weekly_rate',
-        'monthly_rate',
-        'fuel_type',
-        'transmission',
-        'insurance_expiry',
-        'odometer',
     ];
 
     protected $casts = [
-        'insurance_expiry' => 'date',
+        'facilities' => 'array',
     ];
 
-    public function features()
+    public function orders()
     {
-        return $this->hasMany(VehicleFeature::class);
-    }
-
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Order::class);
     }
 }
