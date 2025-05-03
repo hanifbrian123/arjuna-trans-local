@@ -46,6 +46,25 @@
                             </div>
                         </div>
 
+                        <!-- Nomor Polisi -->
+                        <div class="row mb-3">
+                            <div class="col-lg-3">
+                                <label for="licensePlateInput" class="form-label">Nomor Polisi</label>
+                            </div>
+                            <div class="col-lg-9">
+                                <input type="text"
+                                       id="licensePlateInput"
+                                       name="license_plate"
+                                       class="form-control @error('license_plate') is-invalid @enderror"
+                                       placeholder="Masukkan nomor polisi"
+                                       value="{{ old('license_plate') }}"
+                                       required>
+                                @error('license_plate')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         <!-- Tipe Armada -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
@@ -68,7 +87,7 @@
                         <!-- Kapasitas -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="capacityInput" class="form-label">Kapasitas (Seat)</label>
+                                <label for="capacityInput" class="form-label">Seat</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="number"
@@ -91,22 +110,13 @@
                                 <label class="form-label">Fasilitas</label>
                             </div>
                             <div class="col-lg-9">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="acCheckbox" name="facilities[]" value="AC" {{ in_array('AC', old('facilities', [])) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="acCheckbox">AC</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="tvCheckbox" name="facilities[]" value="TV" {{ in_array('TV', old('facilities', [])) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="tvCheckbox">TV</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="wifiCheckbox" name="facilities[]" value="WiFi" {{ in_array('WiFi', old('facilities', [])) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="wifiCheckbox">WiFi</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="toiletCheckbox" name="facilities[]" value="Toilet" {{ in_array('Toilet', old('facilities', [])) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="toiletCheckbox">Toilet</label>
-                                </div>
+                                <input type="text"
+                                       id="facilitiesInput"
+                                       name="facilities"
+                                       class="form-control @error('facilities') is-invalid @enderror"
+                                       placeholder="Masukkan fasilitas (pisahkan dengan koma)""
+                                       value="{{ old('facilities') }}"
+                                       required>
                                 @error('facilities')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
@@ -120,14 +130,13 @@
                             </div>
                             <div class="col-lg-9">
                                 <select
-                                    id="statusInput"
-                                    name="status"
-                                    class="form-select @error('status') is-invalid @enderror"
-                                    required>
+                                        id="statusInput"
+                                        name="status"
+                                        class="form-select @error('status') is-invalid @enderror" data-choices
+                                        required>
                                     <option value="" disabled selected>Pilih status</option>
-                                    <option value="ready" {{ old('status') == 'ready' ? 'selected' : '' }}>Siap</option>
-                                    <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
-                                    <option value="booked" {{ old('status') == 'booked' ? 'selected' : '' }}>Terpesan</option>
+                                    <option value="ready" {{ old('status') == 'ready' ? 'selected' : '' }}>Ready</option>
+                                    <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>Service</option>
                                 </select>
                                 @error('status')
                                     <div class="invalid-feedback">{{ $message }}</div>

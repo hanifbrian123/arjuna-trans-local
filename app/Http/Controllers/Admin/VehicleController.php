@@ -23,11 +23,16 @@ class VehicleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'license_plate' => 'required|string|max:20|unique:vehicles,license_plate',
             'type' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1',
-            'facilities' => 'nullable|array',
-            'status' => 'required|in:ready,maintenance,booked',
+            'facilities' => 'required|string',
+            'status' => 'required|in:ready,maintenance',
         ]);
+
+        if (!empty($validated['facilities'])) {
+            $validated['facilities'] = explode(',', $validated['facilities']);
+        }
 
         Vehicle::create($validated);
 
@@ -36,7 +41,7 @@ class VehicleController extends Controller
 
     public function show(Vehicle $vehicle)
     {
-        return view('admin.vehicles.show', compact('vehicle'));
+        //
     }
 
     public function edit(Vehicle $vehicle)
@@ -48,11 +53,16 @@ class VehicleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'license_plate' => "required|string|max:20|unique:vehicles,license_plate,{$vehicle->id}",
             'type' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1',
-            'facilities' => 'nullable|array',
-            'status' => 'required|in:ready,maintenance,booked',
+            'facilities' => 'required|string',
+            'status' => 'required|in:ready,maintenance',
         ]);
+
+        if (!empty($validated['facilities'])) {
+            $validated['facilities'] = explode(',', $validated['facilities']);
+        }
 
         $vehicle->update($validated);
 
@@ -64,30 +74,5 @@ class VehicleController extends Controller
         $vehicle->delete();
 
         return redirect()->route('admin.vehicles.index')->with('success', 'Armada berhasil dihapus!');
-    }
-
-    public function uploadPhoto(Request $request)
-    {
-        $request->validate([
-            'vehicle_id' => 'required|exists:vehicles,id',
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        $vehicle = Vehicle::findOrFail($request->vehicle_id);
-        
-        if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/vehicles'), $filename);
-            
-            // Save the photo path to the vehicle
-            $vehicle->update([
-                'photo' => 'uploads/vehicles/' . $filename
-            ]);
-            
-            return redirect()->back()->with('success', 'Foto armada berhasil diunggah!');
-        }
-        
-        return redirect()->back()->with('error', 'Gagal mengunggah foto!');
     }
 }

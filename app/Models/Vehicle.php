@@ -10,6 +10,7 @@ class Vehicle extends Model
     use HasFactory;
     protected $fillable = [
         'name',
+        'license_plate',
         'type',
         'capacity',
         'facilities',
@@ -22,6 +23,6 @@ class Vehicle extends Model
 
     public function orders()
     {
-        return $this->hasMany(Order::class);
+        return $this->belongsToMany(Order::class);
     }
 }
