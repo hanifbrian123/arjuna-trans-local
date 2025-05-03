@@ -31,10 +31,7 @@
                         <div class="ms-auto d-flex flex-column flex-sm-row gap-2 align-items-center">
                             <!-- Date Range -->
                             <div style="width: 180px;">
-                                <div class="input-group input-group-sm">
-                                    <input type="text" id="dateRangeFilter" class="form-control flatpickr-input" placeholder="Rentang Tanggal">
-                                    <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
-                                </div>
+                                <input type="text" id="dateRangeFilter" class="form-control form-control-sm flatpickr-input" placeholder="Rentang Tanggal">
                             </div>
 
                             <!-- Payment Status -->
@@ -122,7 +119,7 @@
                 <!-- Table Section -->
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="paymentsTable" class="table table-bordered table-nowrap align-middle" style="width:100%">
+                        <table id="paymentsTable" class="table nowrap align-middle" style="width:100%">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -207,6 +204,42 @@
 
             #dateRangeFilter {
                 width: 100% !important;
+            }
+        }
+
+        /* Table responsiveness */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-nowrap th,
+        .table-nowrap td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Ensure horizontal scrolling works well on mobile */
+        @media (max-width: 767.98px) {
+            .table-responsive {
+                overflow-x: auto;
+                max-width: 100%;
+                margin-bottom: 1rem;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-responsive::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .table-responsive::-webkit-scrollbar-thumb {
+                background-color: rgba(var(--vz-dark-rgb), 0.2);
+                border-radius: 4px;
+            }
+
+            .table-responsive::-webkit-scrollbar-track {
+                background-color: rgba(var(--vz-light-rgb), 0.1);
             }
         }
     </style>

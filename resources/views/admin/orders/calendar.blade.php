@@ -51,23 +51,33 @@
                         <div class="card-body">
                             <h6 class="card-title mb-2">Keterangan Warna</h6>
                             <div class="d-flex flex-wrap">
+                                <!-- Warna berdasarkan tipe kendaraan (dinamis dari database) -->
                                 @php
-                                    $colors = ['bg-primary', 'bg-danger', 'bg-purple', 'bg-success', 'bg-warning', 'bg-info', 'bg-secondary'];
-                                    $colorIndex = 0;
+                                    // Definisi warna untuk tipe kendaraan yang umum
+                                    $vehicleColorMap = [
+                                        'Hiace' => '#4285F4',
+                                        'Elf' => '#EA4335',
+                                        'Bus' => '#9C27B0',
+                                        'Avanza' => '#34A853',
+                                        'Innova' => '#FBBC05',
+                                    ];
 
-                                    // Get unique vehicle types
-                                    $vehicleTypes = $vehicles->pluck('type')->unique();
+                                    // Warna default untuk tipe kendaraan lainnya
+                                    $defaultColors = ['#3788d8', '#FF5722', '#00BCD4', '#795548', '#607D8B', '#E91E63', '#3F51B5', '#009688', '#8BC34A', '#FFC107'];
+                                    $colorIndex = 0;
                                 @endphp
 
-                                @foreach ($vehicleTypes as $type)
+                                @foreach ($vehicles->pluck('type')->unique() as $type)
                                     <div class="legend-item me-3 mb-2">
-                                        <span class="legend-dot {{ $colors[$colorIndex % count($colors)] }} rounded-circle d-inline-block me-1" style="width: 10px; height: 10px;"></span>
+                                        @if (array_key_exists($type, $vehicleColorMap))
+                                            <span class="legend-dot" style="background-color: {{ $vehicleColorMap[$type] }}; width: 10px; height: 10px;"></span>
+                                        @else
+                                            <span class="legend-dot" style="background-color: {{ $defaultColors[$colorIndex % count($defaultColors)] }}; width: 10px; height: 10px;"></span>
+                                            @php $colorIndex++; @endphp
+                                        @endif
                                         <span>{{ $type }}</span>
                                     </div>
-                                    @php $colorIndex++; @endphp
                                 @endforeach
-
-                                <div class="ms-auto"></div>
                             </div>
                         </div>
                     </div>
@@ -84,43 +94,179 @@
 
     <!-- Order Detail Modal -->
     <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-light">
                     <h5 class="modal-title" id="orderDetailModalLabel">Detail Order</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row mb-3">
+                    <div class="row">
                         <div class="col-md-6">
-                            <p class="mb-1 text-muted">Tujuan:</p>
-                            <p class="fw-medium" id="modal-destination">-</p>
+                            <!-- Informasi Utama -->
+                            <div class="card border shadow-none mb-3">
+                                <div class="card-header bg-soft-primary">
+                                    <h6 class="card-title mb-0">Informasi Utama</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Nomor Order:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-order-num">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Status:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <span class="badge bg-success" id="modal-status">-</span>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Pelanggan:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-customer">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Telepon:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-phone">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Informasi Kendaraan & Driver -->
+                            <div class="card border shadow-none mb-3">
+                                <div class="card-header bg-soft-success">
+                                    <h6 class="card-title mb-0">Informasi Kendaraan & Driver</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Tipe Armada:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-vehicle">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Jumlah Unit:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-vehicle-count">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Driver:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-driver">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="col-md-6">
-                            <p class="mb-1 text-muted">Armada:</p>
-                            <p class="fw-medium" id="modal-vehicle">-</p>
+                            <!-- Informasi Perjalanan -->
+                            <div class="card border shadow-none mb-3">
+                                <div class="card-header bg-soft-info">
+                                    <h6 class="card-title mb-0">Informasi Perjalanan</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Tanggal Mulai:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-start-date">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Tanggal Selesai:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-end-date">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Alamat Jemput:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-pickup">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Tujuan:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-destination">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Informasi Pembayaran -->
+                            <div class="card border shadow-none mb-3">
+                                <div class="card-header bg-soft-warning">
+                                    <h6 class="card-title mb-0">Informasi Pembayaran</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Harga Sewa:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-rental-price">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Down Payment:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-down-payment">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-5">
+                                            <p class="mb-0 text-muted">Sisa Pembayaran:</p>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p class="mb-0 fw-medium" id="modal-remaining-cost">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p class="mb-1 text-muted">Driver:</p>
-                            <p class="fw-medium" id="modal-driver">-</p>
+
+                    <!-- Catatan Tambahan -->
+                    <div class="card border shadow-none">
+                        <div class="card-header bg-soft-secondary">
+                            <h6 class="card-title mb-0">Catatan Tambahan</h6>
                         </div>
-                        <div class="col-md-6">
-                            <p class="mb-1 text-muted">Status:</p>
-                            <span class="badge bg-success" id="modal-status">-</span>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <p class="mb-1 text-muted">Alamat Penjemputan:</p>
-                            <p class="fw-medium" id="modal-pickup">-</p>
+                        <div class="card-body">
+                            <p class="mb-0" id="modal-notes">-</p>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <a href="#" id="modal-view-link" class="btn btn-primary">Lihat Detail</a>
                 </div>
             </div>
         </div>
@@ -384,47 +530,141 @@
                         });
                 },
                 eventClick: function(info) {
-                    // Populate modal with event data
-                    document.getElementById('modal-destination').textContent = info.event.extendedProps.destination || '-';
-                    document.getElementById('modal-vehicle').textContent = info.event.extendedProps.vehicle_type || '-';
-                    document.getElementById('modal-driver').textContent = info.event.extendedProps.driver_name || '-';
-                    document.getElementById('modal-pickup').textContent = info.event.extendedProps.pickup || '-';
+                    // Fetch detailed order data
+                    fetch(`/admin/orders/${info.event.id}/detail`, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Populate modal with event data
+                            document.getElementById('modal-order-num').textContent = data.order_num || '-';
+                            document.getElementById('modal-customer').textContent = data.name || '-';
+                            document.getElementById('modal-phone').textContent = data.phone_number || '-';
+                            document.getElementById('modal-destination').textContent = data.destination || '-';
+                            document.getElementById('modal-vehicle').textContent = data.vehicle_type || '-';
+                            document.getElementById('modal-vehicle-count').textContent = data.vehicle_count || '-';
+                            document.getElementById('modal-driver').textContent = data.driver_name || '-';
+                            document.getElementById('modal-pickup').textContent = data.pickup_address || '-';
+                            document.getElementById('modal-notes').textContent = data.additional_notes || '-';
 
-                    const statusElement = document.getElementById('modal-status');
-                    statusElement.textContent = info.event.extendedProps.status || 'approved';
+                            // Format dates
+                            const startDate = data.start_date ? new Date(data.start_date) : null;
+                            const endDate = data.end_date ? new Date(data.end_date) : null;
 
-                    // Set status badge color
-                    statusElement.className = 'badge';
-                    switch (info.event.extendedProps.status) {
-                        case 'waiting':
-                            statusElement.classList.add('bg-warning');
-                            statusElement.textContent = 'Menunggu';
-                            break;
-                        case 'approved':
-                            statusElement.classList.add('bg-success');
-                            statusElement.textContent = 'Disetujui';
-                            break;
-                        case 'canceled':
-                            statusElement.classList.add('bg-danger');
-                            statusElement.textContent = 'Dibatalkan';
-                            break;
-                        case 'completed':
-                            statusElement.classList.add('bg-info');
-                            statusElement.textContent = 'Selesai';
-                            break;
-                        default:
-                            statusElement.classList.add('bg-secondary');
-                    }
+                            document.getElementById('modal-start-date').textContent = startDate ?
+                                startDate.toLocaleString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }) : '-';
 
-                    // Set view link
-                    document.getElementById('modal-view-link').href = info.event.url;
+                            document.getElementById('modal-end-date').textContent = endDate ?
+                                endDate.toLocaleString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }) : '-';
+
+                            // Format currency
+                            const formatter = new Intl.NumberFormat('id-ID', {
+                                style: 'currency',
+                                currency: 'IDR',
+                                minimumFractionDigits: 0
+                            });
+
+                            document.getElementById('modal-rental-price').textContent =
+                                data.rental_price ? formatter.format(data.rental_price) : '-';
+                            document.getElementById('modal-down-payment').textContent =
+                                data.down_payment ? formatter.format(data.down_payment) : '-';
+                            document.getElementById('modal-remaining-cost').textContent =
+                                data.remaining_cost ? formatter.format(data.remaining_cost) : '-';
+
+                            // Set status badge color
+                            const statusElement = document.getElementById('modal-status');
+                            statusElement.textContent = data.status || 'approved';
+
+                            // Set status badge color
+                            statusElement.className = 'badge';
+                            switch (data.status) {
+                                case 'waiting':
+                                    statusElement.classList.add('bg-warning');
+                                    statusElement.textContent = 'Menunggu';
+                                    break;
+                                case 'approved':
+                                    statusElement.classList.add('bg-success');
+                                    statusElement.textContent = 'Disetujui';
+                                    break;
+                                case 'canceled':
+                                    statusElement.classList.add('bg-danger');
+                                    statusElement.textContent = 'Dibatalkan';
+                                    break;
+                                case 'completed':
+                                    statusElement.classList.add('bg-info');
+                                    statusElement.textContent = 'Selesai';
+                                    break;
+                                default:
+                                    statusElement.classList.add('bg-secondary');
+                            }
+
+
+
+                            // Show modal
+                            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                            modal.show();
+                        })
+                        .catch(error => {
+                            console.error('Error fetching order details:', error);
+                            // Fallback to basic data if API fails
+                            document.getElementById('modal-destination').textContent = info.event.extendedProps.destination || '-';
+                            document.getElementById('modal-vehicle').textContent = info.event.extendedProps.vehicle_type || '-';
+                            document.getElementById('modal-driver').textContent = info.event.extendedProps.driver_name || '-';
+                            document.getElementById('modal-pickup').textContent = info.event.extendedProps.pickup || '-';
+
+                            const statusElement = document.getElementById('modal-status');
+                            statusElement.textContent = info.event.extendedProps.status || 'approved';
+
+                            // Set status badge color
+                            statusElement.className = 'badge';
+                            switch (info.event.extendedProps.status) {
+                                case 'waiting':
+                                    statusElement.classList.add('bg-warning');
+                                    statusElement.textContent = 'Menunggu';
+                                    break;
+                                case 'approved':
+                                    statusElement.classList.add('bg-success');
+                                    statusElement.textContent = 'Disetujui';
+                                    break;
+                                case 'canceled':
+                                    statusElement.classList.add('bg-danger');
+                                    statusElement.textContent = 'Dibatalkan';
+                                    break;
+                                case 'completed':
+                                    statusElement.classList.add('bg-info');
+                                    statusElement.textContent = 'Selesai';
+                                    break;
+                                default:
+                                    statusElement.classList.add('bg-secondary');
+                            }
+
+
+
+                            // Show modal with limited data
+                            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                            modal.show();
+                        });
 
                     // Prevent navigation to the event URL
                     info.jsEvent.preventDefault();
-
-                    // Show modal
-                    const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
-                    modal.show();
                 },
                 eventDidMount: function(info) {
                     // Add tooltip with more information

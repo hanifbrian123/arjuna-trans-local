@@ -255,20 +255,17 @@
                                 <label for="rentalPriceInput" class="form-label">Harga Sewa</label>
                             </div>
                             <div class="col-lg-9">
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="number"
-                                           id="rentalPriceInput"
-                                           name="rental_price"
-                                           class="form-control @error('rental_price') is-invalid @enderror"
-                                           placeholder="Masukkan harga sewa"
-                                           value="{{ old('rental_price') }}"
-                                           min="0"
-                                           required>
-                                    @error('rental_price')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                <input type="number"
+                                       id="rentalPriceInput"
+                                       name="rental_price"
+                                       class="form-control @error('rental_price') is-invalid @enderror"
+                                       placeholder="Rp - Masukkan harga sewa"
+                                       value="{{ old('rental_price') }}"
+                                       min="0"
+                                       required>
+                                @error('rental_price')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
@@ -278,20 +275,17 @@
                                 <label for="downPaymentInput" class="form-label">Uang Muka</label>
                             </div>
                             <div class="col-lg-9">
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="number"
-                                           id="downPaymentInput"
-                                           name="down_payment"
-                                           class="form-control @error('down_payment') is-invalid @enderror"
-                                           placeholder="Masukkan jumlah DP"
-                                           value="{{ old('down_payment') }}"
-                                           min="0"
-                                           required>
-                                    @error('down_payment')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                <input type="number"
+                                       id="downPaymentInput"
+                                       name="down_payment"
+                                       class="form-control @error('down_payment') is-invalid @enderror"
+                                       placeholder="Rp - Masukkan jumlah DP"
+                                       value="{{ old('down_payment') }}"
+                                       min="0"
+                                       required>
+                                @error('down_payment')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
@@ -301,19 +295,16 @@
                                 <label for="remainingCostInput" class="form-label">Sisa Bayar</label>
                             </div>
                             <div class="col-lg-9">
-                                <div class="input-group">
-                                    <span class="input-group-text">Rp</span>
-                                    <input type="number"
-                                           id="remainingCostInput"
-                                           name="remaining_cost"
-                                           class="form-control @error('remaining_cost') is-invalid @enderror"
-                                           placeholder="Sisa bayar akan dihitung otomatis"
-                                           value="{{ old('remaining_cost') }}"
-                                           readonly>
-                                    @error('remaining_cost')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                <input type="number"
+                                       id="remainingCostInput"
+                                       name="remaining_cost"
+                                       class="form-control @error('remaining_cost') is-invalid @enderror"
+                                       placeholder="Rp - Sisa bayar akan dihitung otomatis"
+                                       value="{{ old('remaining_cost') }}"
+                                       readonly>
+                                @error('remaining_cost')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 

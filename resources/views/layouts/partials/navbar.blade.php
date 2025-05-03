@@ -35,14 +35,14 @@
                 <!-- Dashboard -->
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="{{ route('dashboard') }}">
-                        <i class="mdi mdi-file-document"></i> <span>Dashboard</span>
+                        <i class="mdi mdi-view-dashboard-outline"></i> <span>Dashboard</span>
                     </a>
                 </li>
 
                 <!-- Order Management -->
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarOrder" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarOrder">
-                        <i class="mdi mdi-clipboard-text"></i> <span>Order</span>
+                        <i class="mdi mdi-cart-outline"></i> <span>Order</span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarOrder">
                         <ul class="nav nav-sm flex-column">
@@ -63,7 +63,10 @@
                                     <a href="{{ route('driver.orders.index') }}" class="nav-link">Daftar Order</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('driver.orders.calendar') }}" class="nav-link">Kalender Order</a>
+                                    <a href="{{ route('driver.orders.calendar') }}" class="nav-link">Jadwal Saya</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('driver.orders.create') }}" class="nav-link">Buat Order</a>
                                 </li>
                             @endrole
                         </ul>
@@ -74,26 +77,19 @@
                     <!-- Driver Management -->
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="{{ route('admin.drivers.index') }}">
-                            <i class="mdi mdi-account-multiple"></i> <span>Driver</span>
+                            <i class="mdi mdi-account-group"></i> <span>Driver</span>
                         </a>
                     </li>
 
                     <!-- Armada Management -->
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="{{ route('admin.vehicles.index') }}">
-                            <i class="mdi mdi-car"></i> <span>Armada</span>
+                            <i class="mdi mdi-car-multiple"></i> <span>Armada</span>
                         </a>
                     </li>
                 @endrole
 
-                @role('driver')
-                    <!-- Armada Information -->
-                    <li class="nav-item">
-                        <a class="nav-link menu-link" href="{{ route('driver.vehicles.index') }}">
-                            <i class="mdi mdi-car"></i> <span>Armada</span>
-                        </a>
-                    </li>
-                @endrole
+
 
 
             </ul>

@@ -74,25 +74,27 @@
                         </div>
                     </div>
 
-                    <table id="ordersTable" class="table nowrap align-middle" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>No. Order</th>
-                                <th>Tanggal Order</th>
-                                <th>Nama Pemesan</th>
-                                <th>Alamat Penjemputan</th>
-                                <th>Tujuan Utama</th>
-                                <th>Tanggal Pakai</th>
-                                <th>Armada</th>
-                                <th>Driver</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table id="ordersTable" class="table nowrap align-middle" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>No. Order</th>
+                                    <th>Tanggal Order</th>
+                                    <th>Nama Pemesan</th>
+                                    <th>Alamat Penjemputan</th>
+                                    <th>Tujuan Utama</th>
+                                    <th>Tanggal Pakai</th>
+                                    <th>Armada</th>
+                                    <th>Driver</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -117,6 +119,42 @@
         @media (max-width: 576px) {
             #dateRangeFilter {
                 width: 100% !important;
+            }
+        }
+
+        /* Table responsiveness */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-nowrap th,
+        .table-nowrap td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Ensure horizontal scrolling works well on mobile */
+        @media (max-width: 767.98px) {
+            .table-responsive {
+                overflow-x: auto;
+                max-width: 100%;
+                margin-bottom: 1rem;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-responsive::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .table-responsive::-webkit-scrollbar-thumb {
+                background-color: rgba(var(--vz-dark-rgb), 0.2);
+                border-radius: 4px;
+            }
+
+            .table-responsive::-webkit-scrollbar-track {
+                background-color: rgba(var(--vz-light-rgb), 0.1);
             }
         }
     </style>
@@ -156,6 +194,7 @@
             var table = $('#ordersTable').DataTable({
                 processing: true,
                 serverSide: true,
+                responsive: true,
                 ajax: {
                     url: "{{ route('admin.orders.index') }}",
                     data: function(d) {

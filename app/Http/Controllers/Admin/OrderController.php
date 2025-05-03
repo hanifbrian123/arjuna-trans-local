@@ -82,30 +82,40 @@ class OrderController extends Controller
                     '#F44336'  // red
                 ];
 
-                // Group orders by vehicle type for consistent coloring
-                $vehicleTypes = $orders->pluck('vehicle_type')->unique()->values();
-                $vehicleColors = [];
+                // Define specific colors for common vehicle types
+                $vehicleColors = [
+                    'Hiace' => '#4285F4',           // bright blue
+                    'Elf' => '#EA4335',             // bright red
+                    'Bus' => '#9C27B0',             // purple
+                    'Avanza' => '#34A853',          // green
+                    'Innova' => '#FBBC05'           // yellow/amber
+                ];
 
-                // Assign a color to each vehicle type
-                foreach ($vehicleTypes as $index => $type) {
-                    $vehicleColors[$type] = $colorPalette[$index % count($colorPalette)];
-                }
-
-                // Create a map of order IDs to colors for unique order coloring
-                $orderColors = [];
-                foreach ($orders as $index => $order) {
-                    // Generate a unique color for each order based on its ID
-                    $colorIndex = ($order->id + $index) % count($colorPalette);
-                    $orderColors[$order->id] = $colorPalette[$colorIndex];
-                }
+                // Additional colors for other vehicle types
+                $additionalColors = [
+                    '#3788d8',
+                    '#FF5722',
+                    '#00BCD4',
+                    '#795548',
+                    '#607D8B',
+                    '#E91E63',
+                    '#3F51B5',
+                    '#009688',
+                    '#8BC34A',
+                    '#FFC107'
+                ];
 
                 foreach ($orders as $order) {
-                    // Set color based on vehicle type for consistency
-                    $color = $vehicleColors[$order->vehicle_type] ?? '#3788d8'; // Default blue
+                    // Set color based on vehicle type
+                    $color = '#3788d8'; // Default blue
 
-                    // For more distinction, we use the order-specific color
-                    // This ensures each order has a unique color for better visual separation
-                    $color = $orderColors[$order->id];
+                    // Try to match vehicle type to a color
+                    foreach ($vehicleColors as $vehicleName => $vehicleColor) {
+                        if (stripos($order->vehicle_type, $vehicleName) !== false) {
+                            $color = $vehicleColor;
+                            break;
+                        }
+                    }
 
                     // Format title to be more readable and informative
                     $title = $order->vehicle_type;
@@ -131,7 +141,6 @@ class OrderController extends Controller
                         'start' => $order->start_date->format('Y-m-d H:i:s'),
                         'end' => $order->end_date->format('Y-m-d H:i:s'),
                         'color' => $color,
-                        'url' => route('admin.orders.show', $order->id),
                         'className' => 'event-' . $order->status,
                         'extendedProps' => [
                             'customer' => $order->name,
@@ -338,9 +347,15 @@ class OrderController extends Controller
         return redirect()->route('admin.orders.index')->with('success', 'Order berhasil dibuat!');
     }
 
-    public function show(Order $order)
+    /**
+     * Get order details for modal
+     */
+    public function detail(Order $order)
     {
-        return view('admin.orders.show', compact('order'));
+        // Load relationships
+        $order->load(['vehicles', 'drivers']);
+
+        return response()->json($order);
     }
 
     public function edit(Order $order)

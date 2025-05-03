@@ -1,2 +1,4 @@
 
+.navbar-menu .nav-item .nav-link i{font-size:1.25rem;transition:all .3s ease;margin-right:5px}.navbar-menu .nav-item .nav-link:hover i{transform:scale(1.2);color:var(--vz-primary)}.navbar-menu .nav-item.active .nav-link i{color:var(--vz-primary)}.navbar-menu .nav-item.active .nav-link{background-color:rgba(var(--vz-primary-rgb),.1);border-radius:4px}.navbar-menu .menu-dropdown .nav-link{padding-left:2.5rem;position:relative}.navbar-menu .menu-link[aria-expanded=true] i{transform:rotate(5deg);color:var(--vz-primary)}
+
 /*# sourceMappingURL=custom.min.css.map */

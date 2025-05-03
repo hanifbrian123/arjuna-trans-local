@@ -88,7 +88,6 @@ class OrderController extends Controller
                     'start' => $order->start_date->format('Y-m-d H:i:s'),
                     'end' => $order->end_date->format('Y-m-d H:i:s'),
                     'color' => $color,
-                    'url' => route('driver.orders.show', $order->id),
                     'className' => 'event-' . $order->status,
                     'extendedProps' => [
                         'customer' => $order->name,
@@ -152,8 +151,22 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter by date
-        if ($request->has('date') && $request->date) {
+        // Filter by date range
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = $request->start_date;
+            $endDate = $request->end_date;
+
+            $query->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q2) use ($startDate, $endDate) {
+                        $q2->where('start_date', '<=', $startDate)
+                            ->where('end_date', '>=', $endDate);
+                    });
+            });
+        }
+        // Backward compatibility for old date filter
+        else if ($request->has('date') && $request->date) {
             $date = $request->date;
             $query->whereDate('start_date', '<=', $date)
                 ->whereDate('end_date', '>=', $date);
@@ -191,37 +204,13 @@ class OrderController extends Controller
                 return $row->created_at;
             })
             ->addColumn('action', function ($row) {
-                $viewBtn = '<a href="' . route('driver.orders.show', $row->id) . '" class="btn btn-sm btn-info"><i class="ri-eye-fill"></i></a>';
-
-                $buttons = '<div class="d-flex gap-2">' . $viewBtn;
-
-                // Add accept button for waiting orders
-                if ($row->status == 'waiting' && !$row->driver_id) {
-                    $acceptBtn = '<form action="' . route('driver.orders.accept', $row->id) . '" method="POST" class="d-inline">
-                        ' . csrf_field() . '
-                        ' . method_field('PUT') . '
-                        <button type="submit" class="btn btn-sm btn-success">
-                            <i class="ri-check-line"></i> Terima
-                        </button>
-                    </form>';
-                    $buttons .= $acceptBtn;
+                // Hanya tampilkan tombol edit jika status bukan approved
+                if ($row->status != 'approved') {
+                    $editBtn = '<a href="' . route('driver.orders.edit', $row->id) . '" class="btn btn-sm btn-primary"><i class="ri-edit-fill"></i></a>';
+                    return '<div class="d-flex gap-2">' . $editBtn . '</div>';
                 }
 
-                // Add complete button for approved orders assigned to this driver
-                if ($row->status == 'approved' && $row->driver_id == auth()->user()->driver->id) {
-                    $completeBtn = '<form action="' . route('driver.orders.complete', $row->id) . '" method="POST" class="d-inline">
-                        ' . csrf_field() . '
-                        ' . method_field('PUT') . '
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="ri-check-double-line"></i> Selesai
-                        </button>
-                    </form>';
-                    $buttons .= $completeBtn;
-                }
-
-                $buttons .= '</div>';
-
-                return $buttons;
+                return '<div class="text-muted"><small>Tidak ada aksi</small></div>';
             })
             ->rawColumns(['action', 'status'])
             ->toJson();
@@ -235,6 +224,22 @@ class OrderController extends Controller
         }
 
         return view('driver.orders.show', compact('order'));
+    }
+
+    /**
+     * Get order details for modal
+     */
+    public function detail(Order $order)
+    {
+        // Check if the driver is authorized to view this order
+        if ($order->driver_id && $order->driver_id != auth()->user()->driver->id && $order->status != 'waiting') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Load relationships
+        $order->load('vehicles');
+
+        return response()->json($order);
     }
 
     public function accept(Order $order)
@@ -253,17 +258,184 @@ class OrderController extends Controller
         return redirect()->route('driver.orders.index')->with('success', 'Order berhasil diterima!');
     }
 
-    public function complete(Order $order)
+    public function edit(Order $order)
     {
-        // Check if the order is assigned to this driver and is approved
-        if ($order->status != 'approved' || $order->driver_id != auth()->user()->driver->id) {
-            return redirect()->route('driver.orders.index')->with('error', 'Order ini tidak dapat diselesaikan.');
+        // Check if the order belongs to this driver or is a waiting order
+        // AND check if the order is not approved
+        if (
+            (!($order->user_id == auth()->id() || ($order->status == 'waiting' && !$order->driver_id))) ||
+            $order->status == 'approved'
+        ) {
+            return redirect()->route('driver.orders.index')->with('error', 'Anda tidak memiliki akses untuk mengedit order ini.');
         }
 
-        $order->update([
-            'status' => 'approved'
-        ]);
+        // Get available vehicles
+        $vehicles = Vehicle::where('status', 'ready')->get();
 
-        return redirect()->route('driver.orders.index')->with('success', 'Order berhasil diselesaikan!');
+        // Get current driver
+        $driver = auth()->user()->driver;
+
+        return view('driver.orders.edit', compact('order', 'vehicles', 'driver'));
+    }
+
+    public function update(Request $request, Order $order)
+    {
+        // Check if the order belongs to this driver or is a waiting order
+        // AND check if the order is not approved
+        if (
+            (!($order->user_id == auth()->id() || ($order->status == 'waiting' && !$order->driver_id))) ||
+            $order->status == 'approved'
+        ) {
+            return redirect()->route('driver.orders.index')->with('error', 'Anda tidak memiliki akses untuk mengedit order ini.');
+        }
+
+        // Prepare the request data
+        $data = $request->all();
+
+        // Convert date strings to proper format if needed
+        if (isset($data['start_date'])) {
+            try {
+                $data['start_date'] = \Carbon\Carbon::parse($data['start_date'])->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                // Keep original value if parsing fails
+            }
+        }
+
+        if (isset($data['end_date'])) {
+            try {
+                $data['end_date'] = \Carbon\Carbon::parse($data['end_date'])->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                // Keep original value if parsing fails
+            }
+        }
+
+        // Validate the data
+        $validated = validator($data, [
+            'name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'address' => 'required|string|max:500',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'pickup_address' => 'required|string|max:500',
+            'destination' => 'required|string|max:255',
+            'route' => 'required|string|max:1000',
+            'vehicle_count' => 'required|integer|min:1|max:10',
+            'rental_price' => 'present|numeric|min:0', // Changed from required to present
+            'down_payment' => 'required|numeric|min:0', // Changed from nullable to required
+            'remaining_cost' => 'present|numeric|min:0', // Changed from nullable to present
+            'additional_notes' => 'nullable|string|max:1000',
+            'vehicle_ids' => 'required|array',
+            'vehicle_ids.*' => 'exists:vehicles,id',
+        ])->validate();
+
+        // Don't change the status
+        $validated['status'] = $order->status;
+
+        // Don't change the driver
+        $validated['driver_id'] = $order->driver_id;
+        $validated['driver_name'] = $order->driver_name;
+
+        // Get the first vehicle's type for the vehicle_type field
+        $primaryVehicle = Vehicle::find($validated['vehicle_ids'][0]);
+        $validated['vehicle_type'] = $primaryVehicle->type;
+
+        // Update the order
+        $order->update($validated);
+
+        // Sync vehicles
+        $order->vehicles()->sync($validated['vehicle_ids']);
+
+        return redirect()->route('driver.orders.index')->with('success', 'Order berhasil diperbarui!');
+    }
+
+    public function create()
+    {
+        // Get available vehicles
+        $vehicles = Vehicle::where('status', 'ready')->get();
+
+        // Get current driver
+        $driver = auth()->user()->driver;
+
+        return view('driver.orders.create', compact('vehicles', 'driver'));
+    }
+
+    public function store(Request $request)
+    {
+        // Prepare the request data
+        $data = $request->all();
+
+        // Convert date strings to proper format if needed
+        if (isset($data['start_date'])) {
+            try {
+                $data['start_date'] = \Carbon\Carbon::parse($data['start_date'])->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                // Keep original value if parsing fails
+            }
+        }
+
+        if (isset($data['end_date'])) {
+            try {
+                $data['end_date'] = \Carbon\Carbon::parse($data['end_date'])->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                // Keep original value if parsing fails
+            }
+        }
+
+        // Validate the data
+        $validated = validator($data, [
+            'name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'address' => 'required|string|max:500',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'pickup_address' => 'required|string|max:500',
+            'destination' => 'required|string|max:255',
+            'route' => 'required|string|max:1000',
+            'vehicle_count' => 'required|integer|min:1|max:10',
+            'rental_price' => 'present|numeric|min:0', // Changed from required to present
+            'down_payment' => 'required|numeric|min:0', // Changed from nullable to required
+            'remaining_cost' => 'present|numeric|min:0', // Changed from nullable to present
+            'additional_notes' => 'nullable|string|max:1000',
+            'vehicle_ids' => 'required|array',
+            'vehicle_ids.*' => 'exists:vehicles,id',
+        ])->validate();
+
+        // Set status to waiting by default
+        $validated['status'] = 'waiting';
+
+        // Set the current user as the creator
+        $validated['user_id'] = auth()->id();
+
+        // Set driver name but leave driver_id empty (admin will assign later)
+        $validated['driver_name'] = auth()->user()->name;
+
+        // Get the first vehicle's type for the vehicle_type field
+        $primaryVehicle = Vehicle::find($validated['vehicle_ids'][0]);
+        $validated['vehicle_type'] = $primaryVehicle->type;
+
+        // Generate order number (format: ORD-YYYYMMDD-XXX)
+        $date = now()->format('Ymd');
+        $lastOrder = Order::whereDate('created_at', now())->latest()->first();
+        $lastNumber = 0;
+
+        if ($lastOrder && $lastOrder->order_num) {
+            $parts = explode('-', $lastOrder->order_num);
+            if (count($parts) == 3 && $parts[1] == $date) {
+                $lastNumber = (int) $parts[2];
+            }
+        }
+
+        $newNumber = $lastNumber + 1;
+        $validated['order_num'] = 'ORD-' . $date . '-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+
+        // Create the order
+        $order = Order::create($validated);
+
+        // Attach vehicles
+        $order->vehicles()->attach($validated['vehicle_ids']);
+
+        // Driver will be attached by admin later
+
+        return redirect()->route('driver.orders.index')->with('success', 'Order berhasil dibuat!');
     }
 }

@@ -15,3 +15,6 @@
 
     <!-- App js -->
     <script src="{{ asset('assets/js/app.js') }}"></script>
+
+    <!-- Navigation Highlight js -->
+    <script src="{{ asset('assets/js/nav-highlight.js') }}"></script>

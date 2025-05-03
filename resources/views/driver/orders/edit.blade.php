@@ -1,16 +1,16 @@
 @extends('layouts.master')
 
-@section('title', 'Edit Order')
-
 @section('content')
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Order</h4>
+                <h4 class="mb-sm-0">Edit Order</h4>
+
                 <div class="page-title-right">
                     <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.orders.index') }}">Order</a></li>
-                        <li class="breadcrumb-item active">Edit</li>
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('driver.orders.index') }}">Order</a></li>
+                        <li class="breadcrumb-item active">Edit Order</li>
                     </ol>
                 </div>
             </div>
@@ -24,11 +24,11 @@
                     <h5 class="card-title mb-0">Form Edit Order</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.orders.update', $order->id) }}" method="POST">
+                    <form action="{{ route('driver.orders.update', $order->id) }}" method="POST">
                         @csrf
                         @method('PUT')
 
-                        <!-- Nama Pemesan -->
+                        <!-- Nama Pemesan (Default to driver's name) -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
                                 <label for="nameInput" class="form-label">Nama Pemesan</label>
@@ -50,7 +50,7 @@
                         <!-- Nomor Telepon -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="phoneInput" class="form-label">Nomor WhatsApp</label>
+                                <label for="phoneInput" class="form-label">Nomor Telepon</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="text"
@@ -69,14 +69,13 @@
                         <!-- Alamat -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="addressInput" class="form-label">Alamat Pemesan</label>
+                                <label for="addressInput" class="form-label">Alamat</label>
                             </div>
                             <div class="col-lg-9">
-                                <textarea
-                                          id="addressInput"
+                                <textarea id="addressInput"
                                           name="address"
                                           class="form-control @error('address') is-invalid @enderror"
-                                          placeholder="Masukkan alamat lengkap"
+                                          placeholder="Masukkan alamat"
                                           rows="3"
                                           required>{{ old('address', $order->address) }}</textarea>
                                 @error('address')
@@ -85,19 +84,22 @@
                             </div>
                         </div>
 
-                        <hr>
-
                         <!-- Tanggal Mulai -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
                                 <label for="startDateInput" class="form-label">Tanggal Mulai</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="datetime-local"
+                                <input type="text"
                                        id="startDateInput"
                                        name="start_date"
                                        class="form-control @error('start_date') is-invalid @enderror"
-                                       value="{{ old('start_date', $order->start_date->format('Y-m-d\TH:i')) }}"
+                                       data-provider="flatpickr"
+                                       data-date-format="Y-m-d H:i:S"
+                                       data-enable-time="true"
+                                       data-time-24hr="true"
+                                       placeholder="Pilih tanggal dan waktu mulai"
+                                       value="{{ old('start_date', $order->start_date->format('Y-m-d H:i:s')) }}"
                                        required>
                                 @error('start_date')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -111,11 +113,16 @@
                                 <label for="endDateInput" class="form-label">Tanggal Selesai</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="datetime-local"
+                                <input type="text"
                                        id="endDateInput"
                                        name="end_date"
                                        class="form-control @error('end_date') is-invalid @enderror"
-                                       value="{{ old('end_date', $order->end_date->format('Y-m-d\TH:i')) }}"
+                                       data-provider="flatpickr"
+                                       data-date-format="Y-m-d H:i:S"
+                                       data-enable-time="true"
+                                       data-time-24hr="true"
+                                       placeholder="Pilih tanggal dan waktu selesai"
+                                       value="{{ old('end_date', $order->end_date->format('Y-m-d H:i:s')) }}"
                                        required>
                                 @error('end_date')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -129,8 +136,7 @@
                                 <label for="pickupAddressInput" class="form-label">Alamat Penjemputan</label>
                             </div>
                             <div class="col-lg-9">
-                                <textarea
-                                          id="pickupAddressInput"
+                                <textarea id="pickupAddressInput"
                                           name="pickup_address"
                                           class="form-control @error('pickup_address') is-invalid @enderror"
                                           placeholder="Masukkan alamat penjemputan"
@@ -152,7 +158,7 @@
                                        id="destinationInput"
                                        name="destination"
                                        class="form-control @error('destination') is-invalid @enderror"
-                                       placeholder="Masukkan tujuan utama"
+                                       placeholder="Masukkan tujuan"
                                        value="{{ old('destination', $order->destination) }}"
                                        required>
                                 @error('destination')
@@ -167,29 +173,29 @@
                                 <label for="routeInput" class="form-label">Rute</label>
                             </div>
                             <div class="col-lg-9">
-                                <textarea
-                                          id="routeInput"
+                                <textarea id="routeInput"
                                           name="route"
                                           class="form-control @error('route') is-invalid @enderror"
                                           placeholder="Masukkan rute perjalanan"
-                                          rows="3">{{ old('route', $order->route) }}</textarea>
+                                          rows="3"
+                                          required>{{ old('route', $order->route) }}</textarea>
                                 @error('route')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
 
-                        <!-- Jumlah Armada -->
+                        <!-- Jumlah Kendaraan -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="vehicleCountInput" class="form-label">Jumlah Armada</label>
+                                <label for="vehicleCountInput" class="form-label">Jumlah Kendaraan</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="number"
                                        id="vehicleCountInput"
                                        name="vehicle_count"
                                        class="form-control @error('vehicle_count') is-invalid @enderror"
-                                       placeholder="Masukkan jumlah armada"
+                                       placeholder="Masukkan jumlah kendaraan"
                                        value="{{ old('vehicle_count', $order->vehicle_count) }}"
                                        min="1"
                                        max="10"
@@ -213,7 +219,7 @@
                                         required>
                                     @foreach ($vehicles as $vehicle)
                                         <option value="{{ $vehicle->id }}"
-                                                {{ collect(old('vehicle_ids', $order->vehicles->pluck('id')->toArray()))->contains($vehicle->id) ? 'selected' : '' }}>
+                                                {{ (is_array(old('vehicle_ids')) && in_array($vehicle->id, old('vehicle_ids'))) || (old('vehicle_ids') === null && $order->vehicles->contains($vehicle->id)) ? 'selected' : '' }}>
                                             {{ $vehicle->name }} - {{ $vehicle->type }} ({{ $vehicle->capacity }} Seat)
                                         </option>
                                     @endforeach
@@ -225,53 +231,13 @@
                             </div>
                         </div>
 
-                        <!-- Driver Pilihan -->
-                        <div class="row mb-3">
-                            <div class="col-lg-3">
-                                <label for="driverIdsInput" class="form-label">Driver Pilihan</label>
-                            </div>
-                            <div class="col-lg-9">
-                                <select
-                                        id="driverIdsInput"
-                                        name="driver_ids[]"
-                                        class="form-select @error('driver_ids') is-invalid @enderror"
-                                        data-choices data-choices-removeItem multiple
-                                        required>
-                                    @foreach ($drivers as $driver)
-                                        <option value="{{ $driver->id }}"
-                                                {{ (is_array(old('driver_ids')) && in_array($driver->id, old('driver_ids'))) || (!is_array(old('driver_ids')) && $order->drivers->contains($driver->id)) ? 'selected' : '' }}>
-                                            {{ $driver->user->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('driver_ids')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="text-muted">Pilih satu atau lebih driver</small>
-                            </div>
-                        </div>
+                        <!-- Hidden Rental Price Field -->
+                        <input type="hidden" id="rentalPriceInput" name="rental_price" value="{{ old('rental_price', $order->rental_price) }}">
 
-                        <!-- Harga Sewa -->
-                        <div class="row mb-3">
-                            <div class="col-lg-3">
-                                <label for="rentalPriceInput" class="form-label">Harga Sewa</label>
-                            </div>
-                            <div class="col-lg-9">
-                                <input type="number"
-                                       id="rentalPriceInput"
-                                       name="rental_price"
-                                       class="form-control @error('rental_price') is-invalid @enderror"
-                                       placeholder="Rp - Masukkan harga sewa"
-                                       value="{{ old('rental_price', $order->rental_price) }}"
-                                       min="0"
-                                       required>
-                                @error('rental_price')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
+                        <!-- Hidden Remaining Cost Field -->
+                        <input type="hidden" id="remainingCostInput" name="remaining_cost" value="{{ old('remaining_cost', $order->remaining_cost) }}">
 
-                        <!-- DP -->
+                        <!-- Down Payment (Uang Muka) -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
                                 <label for="downPaymentInput" class="form-label">Uang Muka</label>
@@ -281,57 +247,19 @@
                                        id="downPaymentInput"
                                        name="down_payment"
                                        class="form-control @error('down_payment') is-invalid @enderror"
-                                       placeholder="Rp - Masukkan jumlah DP"
+                                       placeholder="Rp - Masukkan jumlah uang muka"
                                        value="{{ old('down_payment', $order->down_payment) }}"
                                        min="0"
                                        required>
                                 @error('down_payment')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <small class="text-muted">Sebagai driver, Anda hanya perlu memasukkan jumlah uang muka. Harga sewa akan ditentukan oleh admin.</small>
                             </div>
                         </div>
 
-                        <!-- Sisa Bayar -->
-                        <div class="row mb-3">
-                            <div class="col-lg-3">
-                                <label for="remainingCostInput" class="form-label">Sisa Bayar</label>
-                            </div>
-                            <div class="col-lg-9">
-                                <input type="number"
-                                       id="remainingCostInput"
-                                       name="remaining_cost"
-                                       class="form-control @error('remaining_cost') is-invalid @enderror"
-                                       placeholder="Rp - Sisa bayar akan dihitung otomatis"
-                                       value="{{ old('remaining_cost', $order->remaining_cost) }}"
-                                       readonly>
-                                @error('remaining_cost')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Status -->
-                        <div class="row mb-3">
-                            <div class="col-lg-3">
-                                <label for="statusInput" class="form-label">Status Pemesanan</label>
-                            </div>
-                            <div class="col-lg-9">
-                                <select
-                                        id="statusInput"
-                                        name="status"
-                                        class="form-select @error('status') is-invalid @enderror"
-                                        data-choices
-                                        required>
-                                    <option value="" disabled>Pilih status</option>
-                                    <option value="waiting" {{ old('status', $order->status) == 'waiting' ? 'selected' : '' }}>Waiting</option>
-                                    <option value="approved" {{ old('status', $order->status) == 'approved' ? 'selected' : '' }}>Approved</option>
-                                    <option value="canceled" {{ old('status', $order->status) == 'canceled' ? 'selected' : '' }}>Canceled</option>
-                                </select>
-                                @error('status')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
+                        <!-- Status (Hidden) -->
+                        <input type="hidden" name="status" value="{{ $order->status }}">
 
                         <!-- Catatan Tambahan -->
                         <div class="row mb-3">
@@ -339,11 +267,10 @@
                                 <label for="additionalNotesInput" class="form-label">Catatan Tambahan</label>
                             </div>
                             <div class="col-lg-9">
-                                <textarea
-                                          id="additionalNotesInput"
+                                <textarea id="additionalNotesInput"
                                           name="additional_notes"
                                           class="form-control @error('additional_notes') is-invalid @enderror"
-                                          placeholder="Masukkan catatan tambahan (opsional)"
+                                          placeholder="Masukkan catatan tambahan"
                                           rows="3">{{ old('additional_notes', $order->additional_notes) }}</textarea>
                                 @error('additional_notes')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -351,10 +278,13 @@
                             </div>
                         </div>
 
-                        <!-- Tombol Simpan -->
-                        <div class="text-end">
-                            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">Kembali</a>
-                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        <div class="row mt-4">
+                            <div class="col-lg-12">
+                                <div class="hstack gap-2 justify-content-end">
+                                    <a href="{{ route('driver.orders.index') }}" class="btn btn-light">Batal</a>
+                                    <button type="submit" class="btn btn-primary">Simpan</button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -366,58 +296,41 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Choices.js is initialized automatically via data-choices attributes
+            const startDateInput = document.getElementById('startDateInput');
+            const endDateInput = document.getElementById('endDateInput');
 
-            // Calculate remaining cost when rental price or down payment changes
-            const rentalPriceInput = document.getElementById('rentalPriceInput');
-            const downPaymentInput = document.getElementById('downPaymentInput');
-            const remainingCostInput = document.getElementById('remainingCostInput');
+            // Setup flatpickr instances with proper configuration
+            const startDateFlatpickr = flatpickr(startDateInput, {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i:S",
+                time_24hr: true,
+                onChange: function(selectedDates, dateStr) {
+                    // When start date changes, update end date min date
+                    if (selectedDates.length > 0) {
+                        const endDateInstance = endDateInput._flatpickr;
+                        if (endDateInstance) {
+                            endDateInstance.set('minDate', selectedDates[0]);
 
-            function calculateRemainingCost() {
-                const rentalPrice = parseInt(rentalPriceInput.value) || 0;
-                const downPayment = parseInt(downPaymentInput.value) || 0;
-                const remainingCost = rentalPrice - downPayment;
-
-                remainingCostInput.value = remainingCost >= 0 ? remainingCost : 0;
-            }
-
-            rentalPriceInput.addEventListener('input', calculateRemainingCost);
-            downPaymentInput.addEventListener('input', calculateRemainingCost);
-
-            // Initial calculation
-            calculateRemainingCost();
-
-            // Add invoice button if status is approved
-            const statusInput = document.getElementById('statusInput');
-            const formActions = document.querySelector('.text-end');
-
-            function updateInvoiceButton() {
-                // Remove existing invoice button if any
-                const existingInvoiceBtn = document.getElementById('invoiceBtn');
-                if (existingInvoiceBtn) {
-                    existingInvoiceBtn.remove();
+                            // If end date is before start date, update it
+                            if (endDateInstance.selectedDates.length > 0 &&
+                                endDateInstance.selectedDates[0] < selectedDates[0]) {
+                                // Set end date to start date + 1 hour
+                                const newEndDate = new Date(selectedDates[0]);
+                                newEndDate.setHours(newEndDate.getHours() + 1);
+                                endDateInstance.setDate(newEndDate);
+                            }
+                        }
+                    }
                 }
+            });
 
-                // Add invoice button if status is approved
-                if (statusInput.value === 'approved') {
-                    const invoiceBtn = document.createElement('button');
-                    invoiceBtn.id = 'invoiceBtn';
-                    invoiceBtn.type = 'button';
-                    invoiceBtn.className = 'btn btn-success ms-2';
-                    invoiceBtn.textContent = 'Invoice';
-                    invoiceBtn.onclick = function() {
-                        // Placeholder for invoice functionality
-                        alert('Invoice functionality will be implemented here');
-                    };
-
-                    formActions.insertBefore(invoiceBtn, formActions.lastElementChild);
-                }
-            }
-
-            statusInput.addEventListener('change', updateInvoiceButton);
-
-            // Initial check for invoice button
-            updateInvoiceButton();
+            flatpickr(endDateInput, {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i:S",
+                time_24hr: true,
+                // Set min date to start date if available
+                minDate: startDateFlatpickr.selectedDates.length > 0 ? startDateFlatpickr.selectedDates[0] : null
+            });
         });
     </script>
 @endpush

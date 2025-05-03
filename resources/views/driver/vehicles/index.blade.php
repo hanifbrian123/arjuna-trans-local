@@ -25,7 +25,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="vehiclesTable" class="table table-bordered table-nowrap align-middle" style="width:100%">
+                        <table id="vehiclesTable" class="table nowrap align-middle" style="width:100%">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -38,38 +38,38 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($vehicles as $index => $vehicle)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $vehicle->name }}</td>
-                                    <td>{{ $vehicle->type }}</td>
-                                    <td>{{ $vehicle->capacity }}</td>
-                                    <td>
-                                        @if(!empty($vehicle->facilities))
-                                            @foreach($vehicle->facilities as $facility)
-                                                <span class="badge bg-info me-1">{{ $facility }}</span>
-                                            @endforeach
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($vehicle->status == 'ready')
-                                            <span class="badge bg-success">Siap</span>
-                                        @elseif($vehicle->status == 'maintenance')
-                                            <span class="badge bg-warning">Maintenance</span>
-                                        @elseif($vehicle->status == 'booked')
-                                            <span class="badge bg-danger">Terpesan</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="d-flex gap-2">
-                                            <a href="{{ route('driver.vehicles.show', $vehicle->id) }}" class="btn btn-sm btn-info">
-                                                <i class="ri-eye-fill"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
+                                @foreach ($vehicles as $index => $vehicle)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $vehicle->name }}</td>
+                                        <td>{{ $vehicle->type }}</td>
+                                        <td>{{ $vehicle->capacity }}</td>
+                                        <td>
+                                            @if (!empty($vehicle->facilities))
+                                                @foreach ($vehicle->facilities as $facility)
+                                                    <span class="badge bg-info me-1">{{ $facility }}</span>
+                                                @endforeach
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if ($vehicle->status == 'ready')
+                                                <span class="badge bg-success">Siap</span>
+                                            @elseif($vehicle->status == 'maintenance')
+                                                <span class="badge bg-warning">Maintenance</span>
+                                            @elseif($vehicle->status == 'booked')
+                                                <span class="badge bg-danger">Terpesan</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ route('driver.vehicles.show', $vehicle->id) }}" class="btn btn-sm btn-info">
+                                                    <i class="ri-eye-fill"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -81,31 +81,23 @@
 @endsection
 
 @push('styles')
-<link href="{{ asset('assets/libs/datatables/datatables.min.css') }}" rel="stylesheet" type="text/css" />
+    <!--datatable css-->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
+    <!--datatable responsive css-->
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap.min.css" />
 @endpush
 
 @push('scripts')
-<script src="{{ asset('assets/libs/datatables/datatables.min.js') }}"></script>
-<script>
-    $(document).ready(function() {
-        // Initialize DataTable
-        $('#vehiclesTable').DataTable({
-            responsive: true,
-            language: {
-                search: "Cari:",
-                lengthMenu: "Tampilkan _MENU_ data",
-                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
-                infoFiltered: "(disaring dari _MAX_ total data)",
-                zeroRecords: "Tidak ada data yang cocok",
-                paginate: {
-                    first: "Pertama",
-                    last: "Terakhir",
-                    next: "Selanjutnya",
-                    previous: "Sebelumnya"
-                }
-            }
+    <!--datatable js-->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            var table = $('#vehiclesTable').DataTable({
+                responsive: true
+            });
         });
-    });
-</script>
+    </script>
 @endpush

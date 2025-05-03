@@ -24,22 +24,10 @@
                     <div class="d-flex align-items-center">
                         <h5 class="card-title mb-0 flex-grow-1">Detail Order {{ $order->order_num ?? 'ORD-' . str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</h5>
                         <div>
-                            @if ($order->status == 'waiting' && !$order->driver_id)
-                                <form action="{{ route('driver.orders.accept', $order->id) }}" method="POST" class="d-inline accept-form">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="ri-check-line"></i> Terima Order
-                                    </button>
-                                </form>
-                            @elseif($order->status == 'approved' && $order->driver_id == auth()->user()->driver->id)
-                                <form action="{{ route('driver.orders.complete', $order->id) }}" method="POST" class="d-inline complete-form">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="btn btn-info">
-                                        <i class="ri-check-double-line"></i> Selesaikan Order
-                                    </button>
-                                </form>
+                            @if ($order->user_id == auth()->id() || ($order->status == 'waiting' && !$order->driver_id))
+                                <a href="{{ route('driver.orders.edit', $order->id) }}" class="btn btn-primary">
+                                    <i class="ri-edit-line"></i> Edit Order
+                                </a>
                             @endif
                         </div>
                     </div>
@@ -165,49 +153,3 @@
         </div>
     </div>
 @endsection
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Event delegation for accept form
-            document.querySelector('.accept-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const form = this;
-
-                Swal.fire({
-                    title: 'Terima Order?',
-                    text: 'Anda akan menerima order ini dan bertanggung jawab untuk menyelesaikannya.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, terima!',
-                    cancelButtonText: 'Batal',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-
-            // Event delegation for complete form
-            document.querySelector('.complete-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const form = this;
-
-                Swal.fire({
-                    title: 'Selesaikan Order?',
-                    text: 'Anda akan menandai order ini sebagai selesai.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, selesai!',
-                    cancelButtonText: 'Batal',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-        });
-    </script>
-@endpush
