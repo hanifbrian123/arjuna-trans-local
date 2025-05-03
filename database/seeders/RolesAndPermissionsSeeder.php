@@ -14,8 +14,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $roles = [
             'admin',
-            'driver',
-            'customer',
+            'driver'
         ];
 
         foreach ($roles as $role) {

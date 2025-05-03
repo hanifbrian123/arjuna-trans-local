@@ -12,6 +12,7 @@ class VehicleSeeder extends Seeder
         // Create predefined vehicles
         $vehicles = [
             [
+                'license_plate' => 'B 1234 ABC',
                 'name' => 'Isuzu Elf 01',
                 'type' => 'ISUZU ELF LONG',
                 'capacity' => 20,
@@ -19,6 +20,7 @@ class VehicleSeeder extends Seeder
                 'status' => 'ready',
             ],
             [
+                'license_plate' => 'B 5678 DEF',
                 'name' => 'Isuzu Elf 02',
                 'type' => 'ISUZU ELF SHORT',
                 'capacity' => 15,
@@ -26,6 +28,7 @@ class VehicleSeeder extends Seeder
                 'status' => 'ready',
             ],
             [
+                'license_plate' => 'B 9012 GHI',
                 'name' => 'Toyota Hiace 01',
                 'type' => 'TOYOTA HIACE',
                 'capacity' => 12,
@@ -33,6 +36,7 @@ class VehicleSeeder extends Seeder
                 'status' => 'ready',
             ],
             [
+                'license_plate' => 'B 3456 JKL',
                 'name' => 'Toyota Alphard 01',
                 'type' => 'TOYOTA ALPHARD',
                 'capacity' => 7,
@@ -40,6 +44,7 @@ class VehicleSeeder extends Seeder
                 'status' => 'ready',
             ],
             [
+                'license_plate' => 'B 7890 MNO',
                 'name' => 'Mercedes Sprinter 01',
                 'type' => 'MERCEDES BENZ SPRINTER',
                 'capacity' => 16,

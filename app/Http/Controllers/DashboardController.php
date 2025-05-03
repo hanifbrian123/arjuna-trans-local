@@ -54,7 +54,7 @@ class DashboardController extends Controller
         // Count orders assigned to this driver with different statuses
         $waitingOrders = Order::where('status', 'waiting')->whereNull('driver_id')->count();
         $approvedOrders = Order::where('status', 'approved')->where('driver_id', $driver->id)->count();
-        $completedOrders = Order::where('status', 'completed')->where('driver_id', $driver->id)->count();
+        $completedOrders = 0;
 
         // Count orders that are currently active for this driver
         $onTripCount = Order::where('status', 'approved')

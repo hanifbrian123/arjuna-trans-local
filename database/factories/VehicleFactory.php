@@ -41,6 +41,7 @@ class VehicleFactory extends Factory
         );
 
         return [
+            'license_plate' => $this->faker->regexify('[A-Z]{2} [0-9]{4} [A-Z]{3}'),
             'name' => $this->faker->randomElement(['Armada', 'Bus', 'Van', 'Car']) . ' ' . $this->faker->randomNumber(3, true),
             'type' => $this->faker->randomElement($vehicleTypes),
             'capacity' => $this->faker->numberBetween(4, 50),
@@ -54,7 +55,7 @@ class VehicleFactory extends Factory
      */
     public function ready(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'status' => 'ready',
         ]);
     }
@@ -64,7 +65,7 @@ class VehicleFactory extends Factory
      */
     public function maintenance(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'status' => 'maintenance',
         ]);
     }

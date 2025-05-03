@@ -29,8 +29,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{order}/edit', [AdminOrderController::class, 'edit'])->name('edit');
             Route::put('/{order}', [AdminOrderController::class, 'update'])->name('update');
             Route::delete('/{order}', [AdminOrderController::class, 'destroy'])->name('destroy');
-            Route::put('/{order}/assign-driver', [AdminOrderController::class, 'assignDriver'])->name('assign-driver');
-            Route::put('/{order}/change-status', [AdminOrderController::class, 'changeStatus'])->name('change-status');
         });
 
         // Driver Management
@@ -44,7 +42,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{driver}', [DriverController::class, 'destroy'])->name('destroy');
         });
 
-        // Vehicle Management
+        // Armada/Vehicle Management
         Route::prefix('vehicles')->name('vehicles.')->group(function () {
             Route::get('/', [AdminVehicleController::class, 'index'])->name('index');
             Route::get('/create', [AdminVehicleController::class, 'create'])->name('create');
@@ -53,7 +51,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{vehicle}/edit', [AdminVehicleController::class, 'edit'])->name('edit');
             Route::put('/{vehicle}', [AdminVehicleController::class, 'update'])->name('update');
             Route::delete('/{vehicle}', [AdminVehicleController::class, 'destroy'])->name('destroy');
-            Route::post('/upload-photo', [AdminVehicleController::class, 'uploadPhoto'])->name('upload-photo');
         });
 
         // Payment Reports
@@ -73,7 +70,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{order}/complete', [DriverOrderController::class, 'complete'])->name('complete');
         });
 
-        // Vehicle Information for Drivers
+        // Armada/Vehicle Information for Drivers
         Route::prefix('vehicles')->name('vehicles.')->group(function () {
             Route::get('/', [DriverVehicleController::class, 'index'])->name('index');
             Route::get('/{vehicle}', [DriverVehicleController::class, 'show'])->name('show');

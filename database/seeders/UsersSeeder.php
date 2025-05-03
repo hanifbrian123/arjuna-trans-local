@@ -18,25 +18,5 @@ class UsersSeeder extends Seeder
 
         $admin = User::create($admin);
         $admin->assignRole('admin');
-
-        $driver = [
-            'name' => 'Driver',
-            'email' => 'driver@gmail.com',
-            'phone' => '+6285155487113',
-            'password' => bcrypt('password'),
-        ];
-
-        $driver = User::create($driver);
-        $driver->assignRole('driver');
-
-        $customer = [
-            'name' => 'Customer',
-            'email' => 'customer@gmail.com',
-            'phone' => '+6285155487114',
-            'password' => bcrypt('password'),
-        ];
-
-        $customer = User::create($customer);
-        $customer->assignRole('customer');
     }
 }
