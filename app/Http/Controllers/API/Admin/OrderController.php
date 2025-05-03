@@ -4,129 +4,131 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Models\Order;
 use App\Models\Driver;
+use App\Traits\ApiResponser;
+use App\Http\Resources\OrderResource;
+use App\Http\Requests\API\OrderRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * @group Pengelolaan Pesanan
+ *
+ * API untuk mengelola data pesanan
+ */
 class OrderController extends Controller
 {
+    use ApiResponser;
+
     /**
-     * Display a listing of the orders.
+     * Menampilkan daftar pesanan
+     *
+     * Endpoint ini digunakan untuk mendapatkan daftar semua pesanan.
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        $orders = Order::with(['customer', 'driver', 'vehicle'])
+        $orders = Order::with(['user', 'driver', 'vehicle'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json([
-            'orders' => $orders
-        ]);
+        return $this->successResponse(
+            OrderResource::collection($orders),
+            'Daftar pesanan berhasil dimuat'
+        );
     }
 
     /**
-     * Store a newly created order.
+     * Menyimpan pesanan baru
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Endpoint ini digunakan untuk membuat data pesanan baru.
+     *
+     * @param  \App\Http\Requests\API\OrderRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(OrderRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'customer_id' => 'required|exists:users,id',
-            'pickup_location' => 'required|string|max:255',
-            'destination' => 'required|string|max:255',
-            'pickup_date' => 'required|date',
-            'pickup_time' => 'required',
-            'vehicle_id' => 'required|exists:vehicles,id',
-            'total_price' => 'required|numeric',
-            'notes' => 'nullable|string',
-        ]);
+        try {
+            $order = Order::create($request->validated());
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->successResponse(
+                new OrderResource($order),
+                'Pesanan berhasil dibuat',
+                201
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal membuat pesanan: ' . $e->getMessage(), 500);
         }
-
-        $order = Order::create($request->all());
-
-        return response()->json([
-            'message' => 'Order created successfully',
-            'order' => $order
-        ], 201);
     }
 
     /**
-     * Display the specified order.
+     * Menampilkan detail pesanan
+     *
+     * Endpoint ini digunakan untuk mendapatkan detail data pesanan berdasarkan ID.
      *
      * @param  \App\Models\Order  $order
      * @return \Illuminate\Http\JsonResponse
      */
     public function show(Order $order)
     {
-        $order->load(['customer', 'driver', 'vehicle']);
-        
-        return response()->json([
-            'order' => $order
-        ]);
+        $order->load(['user', 'driver', 'vehicle']);
+
+        return $this->successResponse(
+            new OrderResource($order),
+            'Detail pesanan berhasil dimuat'
+        );
     }
 
     /**
-     * Update the specified order.
+     * Memperbarui data pesanan
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Endpoint ini digunakan untuk memperbarui data pesanan yang sudah ada.
+     *
+     * @param  \App\Http\Requests\API\OrderRequest  $request
      * @param  \App\Models\Order  $order
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Order $order)
+    public function update(OrderRequest $request, Order $order)
     {
-        $validator = Validator::make($request->all(), [
-            'customer_id' => 'sometimes|required|exists:users,id',
-            'pickup_location' => 'sometimes|required|string|max:255',
-            'destination' => 'sometimes|required|string|max:255',
-            'pickup_date' => 'sometimes|required|date',
-            'pickup_time' => 'sometimes|required',
-            'vehicle_id' => 'sometimes|required|exists:vehicles,id',
-            'total_price' => 'sometimes|required|numeric',
-            'notes' => 'nullable|string',
-        ]);
+        try {
+            $order->update($request->validated());
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->successResponse(
+                new OrderResource($order->fresh()),
+                'Pesanan berhasil diperbarui'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal memperbarui pesanan: ' . $e->getMessage(), 500);
         }
-
-        $order->update($request->all());
-
-        return response()->json([
-            'message' => 'Order updated successfully',
-            'order' => $order
-        ]);
     }
 
     /**
-     * Remove the specified order.
+     * Menghapus pesanan
+     *
+     * Endpoint ini digunakan untuk menghapus data pesanan.
      *
      * @param  \App\Models\Order  $order
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(Order $order)
     {
-        $order->delete();
+        try {
+            $order->delete();
 
-        return response()->json([
-            'message' => 'Order deleted successfully'
-        ]);
+            return $this->successResponse(
+                null,
+                'Pesanan berhasil dihapus'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal menghapus pesanan: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
-     * Assign a driver to an order.
+     * Menugaskan driver ke pesanan
+     *
+     * Endpoint ini digunakan untuk menugaskan driver ke pesanan tertentu.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Order  $order
@@ -139,26 +141,30 @@ class OrderController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->validationErrorResponse($validator->errors());
         }
 
-        $driver = Driver::findOrFail($request->driver_id);
-        
-        $order->driver_id = $driver->id;
-        $order->status = 'assigned';
-        $order->save();
+        try {
+            $driver = Driver::findOrFail($request->driver_id);
 
-        return response()->json([
-            'message' => 'Driver assigned successfully',
-            'order' => $order->load(['driver', 'customer', 'vehicle'])
-        ]);
+            $order->driver_id = $driver->id;
+            $order->status = 'approved';
+            $order->save();
+
+            return $this->successResponse(
+                new OrderResource($order->load(['driver', 'user', 'vehicle'])),
+                'Driver berhasil ditugaskan'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal menugaskan driver: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
-     * Change the status of an order.
+     * Mengubah status pesanan
+     *
+     * Endpoint ini digunakan untuk mengubah status pesanan.
+     * Status yang tersedia: waiting, approved, canceled
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Order  $order
@@ -167,22 +173,23 @@ class OrderController extends Controller
     public function changeStatus(Request $request, Order $order)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:pending,assigned,accepted,completed,cancelled',
+            'status' => 'required|in:waiting,approved,canceled',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->validationErrorResponse($validator->errors());
         }
 
-        $order->status = $request->status;
-        $order->save();
+        try {
+            $order->status = $request->status;
+            $order->save();
 
-        return response()->json([
-            'message' => 'Order status updated successfully',
-            'order' => $order
-        ]);
+            return $this->successResponse(
+                new OrderResource($order),
+                'Status pesanan berhasil diperbarui'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal memperbarui status pesanan: ' . $e->getMessage(), 500);
+        }
     }
 }

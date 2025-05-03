@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use App\Traits\ApiResponser;
+use App\Http\Resources\UserResource;
+use App\Http\Requests\API\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
@@ -12,34 +15,35 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @group Autentikasi
+ *
+ * API untuk autentikasi pengguna
+ */
 class AuthController extends Controller
 {
+    use ApiResponser;
+
     /**
-     * Login user and create token
+     * Login pengguna dan membuat token
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Endpoint ini digunakan untuk login pengguna dan membuat token akses.
+     * Hanya pengguna dengan role admin yang dapat login melalui API.
+     *
+     * @param  LoginRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+            return $this->errorResponse('Kredensial yang diberikan tidak valid', 401);
         }
 
         // Check if user has admin role
         if (!$user->hasRole('admin')) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.'
-            ], 403);
+            return $this->unauthorizedResponse('Tidak memiliki izin. Akses admin diperlukan.');
         }
 
         // Revoke all existing tokens
@@ -48,41 +52,32 @@ class AuthController extends Controller
         // Create new token
         $token = $user->createToken('admin-token')->plainTextToken;
 
-        return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'roles' => $user->getRoleNames(),
-            ],
+        return $this->successResponse([
+            'user' => new UserResource($user),
             'token' => $token,
-        ]);
+        ], 'Login berhasil');
     }
 
     /**
-     * Get the authenticated user profile
+     * Mendapatkan profil pengguna yang terautentikasi
+     *
+     * Endpoint ini digunakan untuk mendapatkan informasi profil pengguna yang sedang login.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function profile(Request $request)
     {
-        $user = $request->user();
-        
-        return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'roles' => $user->getRoleNames(),
-            ]
-        ]);
+        return $this->successResponse(
+            new UserResource($request->user()),
+            'Profil pengguna berhasil dimuat'
+        );
     }
 
     /**
-     * Logout user (revoke token)
+     * Logout pengguna (mencabut token)
+     *
+     * Endpoint ini digunakan untuk logout pengguna dan mencabut token akses yang sedang digunakan.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -91,13 +86,14 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Successfully logged out'
-        ]);
+        return $this->successResponse(null, 'Logout berhasil');
     }
 
     /**
-     * Send password reset link
+     * Mengirim link reset password
+     *
+     * Endpoint ini digunakan untuk mengirim link reset password ke email pengguna.
+     * Hanya pengguna dengan role admin yang dapat menggunakan fitur ini.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -111,9 +107,7 @@ class AuthController extends Controller
         // Check if user exists and has admin role
         $user = User::where('email', $request->email)->first();
         if (!$user || !$user->hasRole('admin')) {
-            return response()->json([
-                'message' => 'We could not find a user with that email address.'
-            ], 404);
+            return $this->notFoundResponse('Kami tidak dapat menemukan pengguna dengan alamat email tersebut.');
         }
 
         $status = Password::sendResetLink(
@@ -121,14 +115,16 @@ class AuthController extends Controller
         );
 
         if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => __($status)]);
+            return $this->successResponse(null, __($status));
         }
 
-        return response()->json(['message' => __($status)], 400);
+        return $this->errorResponse(__($status), 400);
     }
 
     /**
      * Reset password
+     *
+     * Endpoint ini digunakan untuk melakukan reset password pengguna.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -155,9 +151,9 @@ class AuthController extends Controller
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            return response()->json(['message' => __($status)]);
+            return $this->successResponse(null, __($status));
         }
 
-        return response()->json(['message' => __($status)], 400);
+        return $this->errorResponse(__($status), 400);
     }
 }

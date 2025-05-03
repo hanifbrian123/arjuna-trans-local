@@ -3,14 +3,26 @@
 namespace App\Http\Controllers\API\Admin;
 
 use App\Models\Vehicle;
+use App\Traits\ApiResponser;
+use App\Http\Resources\VehicleResource;
+use App\Http\Requests\API\VehicleRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * @group Pengelolaan Armada
+ *
+ * API untuk mengelola data armada kendaraan
+ */
 class VehicleController extends Controller
 {
+    use ApiResponser;
+
     /**
-     * Display a listing of the vehicles.
+     * Menampilkan daftar armada
+     *
+     * Endpoint ini digunakan untuk mendapatkan daftar semua armada kendaraan.
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -18,108 +30,100 @@ class VehicleController extends Controller
     {
         $vehicles = Vehicle::all();
 
-        return response()->json([
-            'vehicles' => $vehicles
-        ]);
+        return $this->successResponse(
+            VehicleResource::collection($vehicles),
+            'Daftar armada berhasil dimuat'
+        );
     }
 
     /**
-     * Store a newly created vehicle.
+     * Menyimpan armada baru
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Endpoint ini digunakan untuk membuat data armada kendaraan baru.
+     *
+     * @param  \App\Http\Requests\API\VehicleRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(VehicleRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|max:50',
-            'license_plate' => 'required|string|max:20|unique:vehicles',
-            'capacity' => 'required|integer|min:1',
-            'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
-            'status' => 'required|in:available,maintenance,booked',
-            'price_per_day' => 'required|numeric|min:0',
-        ]);
+        try {
+            $vehicle = Vehicle::create($request->validated());
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->successResponse(
+                new VehicleResource($vehicle),
+                'Armada berhasil dibuat',
+                201
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal membuat armada: ' . $e->getMessage(), 500);
         }
-
-        $vehicle = Vehicle::create($request->all());
-
-        return response()->json([
-            'message' => 'Vehicle created successfully',
-            'vehicle' => $vehicle
-        ], 201);
     }
 
     /**
-     * Display the specified vehicle.
+     * Menampilkan detail armada
+     *
+     * Endpoint ini digunakan untuk mendapatkan detail data armada kendaraan berdasarkan ID.
      *
      * @param  \App\Models\Vehicle  $vehicle
      * @return \Illuminate\Http\JsonResponse
      */
     public function show(Vehicle $vehicle)
     {
-        return response()->json([
-            'vehicle' => $vehicle
-        ]);
+        return $this->successResponse(
+            new VehicleResource($vehicle),
+            'Detail armada berhasil dimuat'
+        );
     }
 
     /**
-     * Update the specified vehicle.
+     * Memperbarui data armada
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Endpoint ini digunakan untuk memperbarui data armada kendaraan yang sudah ada.
+     *
+     * @param  \App\Http\Requests\API\VehicleRequest  $request
      * @param  \App\Models\Vehicle  $vehicle
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Vehicle $vehicle)
+    public function update(VehicleRequest $request, Vehicle $vehicle)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'type' => 'sometimes|required|string|max:50',
-            'license_plate' => 'sometimes|required|string|max:20|unique:vehicles,license_plate,' . $vehicle->id,
-            'capacity' => 'sometimes|required|integer|min:1',
-            'year' => 'sometimes|required|integer|min:1900|max:' . (date('Y') + 1),
-            'status' => 'sometimes|required|in:available,maintenance,booked',
-            'price_per_day' => 'sometimes|required|numeric|min:0',
-        ]);
+        try {
+            $vehicle->update($request->validated());
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->successResponse(
+                new VehicleResource($vehicle->fresh()),
+                'Armada berhasil diperbarui'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal memperbarui armada: ' . $e->getMessage(), 500);
         }
-
-        $vehicle->update($request->all());
-
-        return response()->json([
-            'message' => 'Vehicle updated successfully',
-            'vehicle' => $vehicle
-        ]);
     }
 
     /**
-     * Remove the specified vehicle.
+     * Menghapus armada
+     *
+     * Endpoint ini digunakan untuk menghapus data armada kendaraan.
      *
      * @param  \App\Models\Vehicle  $vehicle
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(Vehicle $vehicle)
     {
-        $vehicle->delete();
+        try {
+            $vehicle->delete();
 
-        return response()->json([
-            'message' => 'Vehicle deleted successfully'
-        ]);
+            return $this->successResponse(
+                null,
+                'Armada berhasil dihapus'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal menghapus armada: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
-     * Upload a photo for a vehicle.
+     * Mengunggah foto armada
+     *
+     * Endpoint ini digunakan untuk mengunggah foto armada kendaraan.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -132,28 +136,30 @@ class VehicleController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
+            return $this->validationErrorResponse($validator->errors());
         }
 
-        $vehicle = Vehicle::findOrFail($request->vehicle_id);
+        try {
+            $vehicle = Vehicle::findOrFail($request->vehicle_id);
 
-        if ($request->hasFile('photo')) {
-            // Add photo to media library
-            $vehicle->addMediaFromRequest('photo')
-                ->toMediaCollection('photos');
+            if ($request->hasFile('photo')) {
+                // Add photo to media library
+                $media = $vehicle->addMediaFromRequest('photo')
+                    ->toMediaCollection('photos');
 
-            return response()->json([
-                'message' => 'Photo uploaded successfully',
-                'vehicle' => $vehicle,
-                'media' => $vehicle->getMedia('photos')->last()
-            ]);
+                return $this->successResponse([
+                    'vehicle' => new VehicleResource($vehicle),
+                    'media' => [
+                        'id' => $media->id,
+                        'url' => $media->getFullUrl(),
+                        'file_name' => $media->file_name,
+                    ]
+                ], 'Foto armada berhasil diunggah');
+            }
+
+            return $this->errorResponse('Tidak ada foto yang diunggah', 400);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal mengunggah foto: ' . $e->getMessage(), 500);
         }
-
-        return response()->json([
-            'message' => 'No photo uploaded'
-        ], 400);
     }
 }

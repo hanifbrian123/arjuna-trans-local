@@ -4,16 +4,27 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Models\User;
 use App\Models\Driver;
+use App\Traits\ApiResponser;
+use App\Http\Resources\DriverResource;
+use App\Http\Requests\API\DriverRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
+/**
+ * @group Pengelolaan Driver
+ *
+ * API untuk mengelola data driver
+ */
 class DriverController extends Controller
 {
+    use ApiResponser;
+
     /**
-     * Display a listing of the drivers.
+     * Menampilkan daftar driver
+     *
+     * Endpoint ini digunakan untuk mendapatkan daftar semua driver.
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -21,36 +32,22 @@ class DriverController extends Controller
     {
         $drivers = Driver::with('user')->get();
 
-        return response()->json([
-            'drivers' => $drivers
-        ]);
+        return $this->successResponse(
+            DriverResource::collection($drivers),
+            'Daftar driver berhasil dimuat'
+        );
     }
 
     /**
-     * Store a newly created driver.
+     * Menyimpan driver baru
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Endpoint ini digunakan untuk membuat data driver baru.
+     *
+     * @param  \App\Http\Requests\API\DriverRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(DriverRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20',
-            'password' => 'required|string|min:8',
-            'license_number' => 'required|string|max:50',
-            'license_expiry' => 'required|date',
-            'address' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         DB::beginTransaction();
         try {
             // Create user
@@ -67,29 +64,27 @@ class DriverController extends Controller
             // Create driver profile
             $driver = Driver::create([
                 'user_id' => $user->id,
-                'license_number' => $request->license_number,
-                'license_expiry' => $request->license_expiry,
                 'address' => $request->address,
                 'status' => 'active',
             ]);
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Driver created successfully',
-                'driver' => $driver->load('user')
-            ], 201);
+            return $this->successResponse(
+                new DriverResource($driver->load('user')),
+                'Driver berhasil dibuat',
+                201
+            );
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Failed to create driver',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal membuat driver: ' . $e->getMessage(), 500);
         }
     }
 
     /**
-     * Display the specified driver.
+     * Menampilkan detail driver
+     *
+     * Endpoint ini digunakan untuk mendapatkan detail data driver berdasarkan ID.
      *
      * @param  \App\Models\Driver  $driver
      * @return \Illuminate\Http\JsonResponse
@@ -97,46 +92,34 @@ class DriverController extends Controller
     public function show(Driver $driver)
     {
         $driver->load('user');
-        
-        return response()->json([
-            'driver' => $driver
-        ]);
+
+        return $this->successResponse(
+            new DriverResource($driver),
+            'Detail driver berhasil dimuat'
+        );
     }
 
     /**
-     * Update the specified driver.
+     * Memperbarui data driver
      *
-     * @param  \Illuminate\Http\Request  $request
+     * Endpoint ini digunakan untuk memperbarui data driver yang sudah ada.
+     *
+     * @param  \App\Http\Requests\API\DriverRequest  $request
      * @param  \App\Models\Driver  $driver
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Driver $driver)
+    public function update(DriverRequest $request, Driver $driver)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $driver->user_id,
-            'phone' => 'sometimes|required|string|max:20',
-            'password' => 'nullable|string|min:8',
-            'license_number' => 'sometimes|required|string|max:50',
-            'license_expiry' => 'sometimes|required|date',
-            'address' => 'sometimes|required|string',
-            'status' => 'sometimes|required|in:active,inactive',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         DB::beginTransaction();
         try {
             // Update user
             $userData = [];
-            if ($request->has('name')) $userData['name'] = $request->name;
-            if ($request->has('email')) $userData['email'] = $request->email;
-            if ($request->has('phone')) $userData['phone'] = $request->phone;
+            if ($request->has('name'))
+                $userData['name'] = $request->name;
+            if ($request->has('email'))
+                $userData['email'] = $request->email;
+            if ($request->has('phone'))
+                $userData['phone'] = $request->phone;
             if ($request->has('password') && $request->password) {
                 $userData['password'] = Hash::make($request->password);
             }
@@ -147,10 +130,10 @@ class DriverController extends Controller
 
             // Update driver profile
             $driverData = [];
-            if ($request->has('license_number')) $driverData['license_number'] = $request->license_number;
-            if ($request->has('license_expiry')) $driverData['license_expiry'] = $request->license_expiry;
-            if ($request->has('address')) $driverData['address'] = $request->address;
-            if ($request->has('status')) $driverData['status'] = $request->status;
+            if ($request->has('address'))
+                $driverData['address'] = $request->address;
+            if ($request->has('status'))
+                $driverData['status'] = $request->status;
 
             if (!empty($driverData)) {
                 $driver->update($driverData);
@@ -158,21 +141,20 @@ class DriverController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Driver updated successfully',
-                'driver' => $driver->fresh()->load('user')
-            ]);
+            return $this->successResponse(
+                new DriverResource($driver->fresh()->load('user')),
+                'Driver berhasil diperbarui'
+            );
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Failed to update driver',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal memperbarui driver: ' . $e->getMessage(), 500);
         }
     }
 
     /**
-     * Remove the specified driver.
+     * Menghapus driver
+     *
+     * Endpoint ini digunakan untuk menghapus data driver.
      *
      * @param  \App\Models\Driver  $driver
      * @return \Illuminate\Http\JsonResponse
@@ -183,21 +165,19 @@ class DriverController extends Controller
         try {
             // Delete driver
             $driver->delete();
-            
+
             // Delete user
             $driver->user->delete();
-            
+
             DB::commit();
-            
-            return response()->json([
-                'message' => 'Driver deleted successfully'
-            ]);
+
+            return $this->successResponse(
+                null,
+                'Driver berhasil dihapus'
+            );
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Failed to delete driver',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Gagal menghapus driver: ' . $e->getMessage(), 500);
         }
     }
 }
