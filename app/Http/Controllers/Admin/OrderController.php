@@ -190,9 +190,6 @@ class OrderController extends Controller
                 } elseif ($row->status == 'canceled') {
                     $statusClass = 'badge bg-danger';
                     $statusText = 'Dibatalkan';
-                } elseif ($row->status == 'completed') {
-                    $statusClass = 'badge bg-info';
-                    $statusText = 'Selesai';
                 } else {
                     $statusClass = 'badge bg-secondary';
                 }
@@ -203,7 +200,6 @@ class OrderController extends Controller
                 return $row->created_at;
             })
             ->addColumn('action', function ($row) {
-                $viewBtn = '<a href="' . route('admin.orders.show', $row->id) . '" class="btn btn-sm btn-info"><i class="ri-eye-fill"></i></a>';
                 $editBtn = '<a href="' . route('admin.orders.edit', $row->id) . '" class="btn btn-sm btn-success"><i class="ri-pencil-fill"></i></a>';
                 $deleteBtn = '<form action="' . route('admin.orders.destroy', $row->id) . '" method="POST" class="delete-form d-inline">
                     ' . csrf_field() . '
@@ -213,7 +209,7 @@ class OrderController extends Controller
                     </button>
                 </form>';
 
-                return '<div class="d-flex gap-2">' . $viewBtn . $editBtn . $deleteBtn . '</div>';
+                return '<div class="d-flex gap-2">' . $editBtn . $deleteBtn . '</div>';
             })
             ->rawColumns(['action', 'status'])
             ->toJson();
@@ -239,22 +235,24 @@ class OrderController extends Controller
             'destination' => 'required|string|max:255',
             'route' => 'required|string|max:1000',
             'vehicle_count' => 'required|integer|min:1|max:10',
-            'vehicle_type' => 'required|string|exists:vehicles,type',
-            'driver_name' => 'required|string',
             'rental_price' => 'required|numeric|min:0',
             'down_payment' => 'nullable|numeric|min:0|lte:rental_price',
             'remaining_cost' => 'nullable|numeric|min:0',
             'status' => 'required|in:waiting,approved,canceled',
             'additional_notes' => 'nullable|string|max:1000',
+            'vehicle_ids' => 'required|array',
+            'vehicle_ids.*' => 'exists:vehicles,id',
+            'driver_ids' => 'required|array',
+            'driver_ids.*' => 'exists:drivers,id',
         ], [
-            'vehicle_type.exists' => 'Tipe armada yang dipilih tidak valid.',
             'down_payment.lte' => 'Uang muka tidak boleh lebih besar dari harga sewa.',
             'vehicle_count.max' => 'Jumlah armada maksimal 10 unit.',
             'end_date.after' => 'Tanggal selesai harus setelah tanggal mulai.',
             'status.in' => 'Status yang dipilih tidak valid.',
+            'vehicle_ids.required' => 'Pilih minimal satu armada.',
+            'driver_ids.required' => 'Pilih minimal satu driver.',
         ]);
 
-        // Calculate remaining cost
         if (isset($validated['rental_price'])) {
             $rentalPrice = $validated['rental_price'];
             $downPayment = $validated['down_payment'] ?? 0;
@@ -263,18 +261,33 @@ class OrderController extends Controller
 
         $validated['user_id'] = auth()->id();
 
-        // Check if driver exists and get driver_id
-        $driver = Driver::whereHas('user', function ($query) use ($validated) {
-            $query->where('name', $validated['driver_name']);
-        })->first();
+        // Get the first driver for backward compatibility
+        $primaryDriver = Driver::find($validated['driver_ids'][0]);
+        $validated['driver_id'] = $primaryDriver->id;
+        $validated['driver_name'] = $primaryDriver->user->name;
 
-        if (!$driver) {
-            return redirect()->back()->withInput()->withErrors(['driver_name' => 'Driver yang dipilih tidak valid.']);
+        // Get the first vehicle's type for the vehicle_type field
+        $primaryVehicle = Vehicle::find($validated['vehicle_ids'][0]);
+        $validated['vehicle_type'] = $primaryVehicle->type;
+
+        // Generate order number (format: ORD-YYYYMMDD-XXX)
+        $date = now()->format('Ymd');
+        $lastOrder = Order::whereDate('created_at', now())->latest()->first();
+        $lastNumber = 0;
+
+        if ($lastOrder && $lastOrder->order_num) {
+            $parts = explode('-', $lastOrder->order_num);
+            if (count($parts) == 3 && $parts[1] == $date) {
+                $lastNumber = (int) $parts[2];
+            }
         }
 
-        $validated['driver_id'] = $driver->id;
+        $newNumber = $lastNumber + 1;
+        $validated['order_num'] = 'ORD-' . $date . '-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
 
-        Order::create($validated);
+        $order = Order::create($validated);
+        $order->vehicles()->attach($validated['vehicle_ids']);
+        $order->drivers()->attach($validated['driver_ids']);
 
         return redirect()->route('admin.orders.index')->with('success', 'Order berhasil dibuat!');
     }
@@ -304,40 +317,42 @@ class OrderController extends Controller
             'destination' => 'required|string|max:255',
             'route' => 'required|string|max:1000',
             'vehicle_count' => 'required|integer|min:1|max:10',
-            'vehicle_type' => 'required|string|exists:vehicles,type',
-            'driver_name' => 'required|string',
             'rental_price' => 'required|numeric|min:0',
             'down_payment' => 'nullable|numeric|min:0|lte:rental_price',
             'remaining_cost' => 'nullable|numeric|min:0',
-            'status' => 'required|in:waiting,approved,canceled,completed',
+            'status' => 'required|in:waiting,approved,canceled',
             'additional_notes' => 'nullable|string|max:1000',
+            'vehicle_ids' => 'required|array',
+            'vehicle_ids.*' => 'exists:vehicles,id',
+            'driver_ids' => 'required|array',
+            'driver_ids.*' => 'exists:drivers,id',
         ], [
-            'vehicle_type.exists' => 'Tipe armada yang dipilih tidak valid.',
             'down_payment.lte' => 'Uang muka tidak boleh lebih besar dari harga sewa.',
             'vehicle_count.max' => 'Jumlah armada maksimal 10 unit.',
             'end_date.after' => 'Tanggal selesai harus setelah tanggal mulai.',
             'status.in' => 'Status yang dipilih tidak valid.',
+            'vehicle_ids.required' => 'Pilih minimal satu armada.',
+            'driver_ids.required' => 'Pilih minimal satu driver.',
         ]);
 
-        // Calculate remaining cost
         if (isset($validated['rental_price'])) {
             $rentalPrice = $validated['rental_price'];
             $downPayment = $validated['down_payment'] ?? 0;
             $validated['remaining_cost'] = $rentalPrice - $downPayment;
         }
 
-        // Check if driver exists and get driver_id
-        $driver = Driver::whereHas('user', function ($query) use ($validated) {
-            $query->where('name', $validated['driver_name']);
-        })->first();
+        // Get the first driver for backward compatibility
+        $primaryDriver = Driver::find($validated['driver_ids'][0]);
+        $validated['driver_id'] = $primaryDriver->id;
+        $validated['driver_name'] = $primaryDriver->user->name;
 
-        if (!$driver) {
-            return redirect()->back()->withInput()->withErrors(['driver_name' => 'Driver yang dipilih tidak valid.']);
-        }
-
-        $validated['driver_id'] = $driver->id;
+        // Get the first vehicle's type for the vehicle_type field
+        $primaryVehicle = Vehicle::find($validated['vehicle_ids'][0]);
+        $validated['vehicle_type'] = $primaryVehicle->type;
 
         $order->update($validated);
+        $order->vehicles()->sync($validated['vehicle_ids']);
+        $order->drivers()->sync($validated['driver_ids']);
 
         return redirect()->route('admin.orders.index')->with('success', 'Order berhasil diubah!');
     }
@@ -347,40 +362,5 @@ class OrderController extends Controller
         $order->delete();
 
         return redirect()->route('admin.orders.index')->with('success', 'Order berhasil dihapus!');
-    }
-
-    public function assignDriver(Request $request, Order $order)
-    {
-        $validated = $request->validate([
-            'driver_id' => 'required|exists:drivers,id',
-        ], [
-            'driver_id.required' => 'Driver harus dipilih.',
-            'driver_id.exists' => 'Driver yang dipilih tidak valid.',
-        ]);
-
-        $driver = Driver::findOrFail($validated['driver_id']);
-
-        $order->update([
-            'driver_id' => $driver->id,
-            'driver_name' => $driver->user->name,
-        ]);
-
-        return redirect()->route('admin.orders.show', $order->id)->with('success', 'Driver berhasil ditugaskan!');
-    }
-
-    public function changeStatus(Request $request, Order $order)
-    {
-        $validated = $request->validate([
-            'status' => 'required|in:waiting,approved,canceled,completed',
-        ], [
-            'status.required' => 'Status harus dipilih.',
-            'status.in' => 'Status yang dipilih tidak valid.',
-        ]);
-
-        $order->update([
-            'status' => $validated['status'],
-        ]);
-
-        return redirect()->route('admin.orders.show', $order->id)->with('success', 'Status order berhasil diubah!');
     }
 }

@@ -50,7 +50,32 @@ class OrderController extends Controller
     public function store(OrderRequest $request)
     {
         try {
-            $order = Order::create($request->validated());
+            $validated = $request->validated();
+
+            // Get vehicle type from the selected vehicle
+            if (isset($validated['vehicle_id'])) {
+                $vehicle = \App\Models\Vehicle::find($validated['vehicle_id']);
+                if ($vehicle) {
+                    $validated['vehicle_type'] = $vehicle->type;
+                }
+            }
+
+            // Generate order number (format: AT-YYYYMMDD-XXX)
+            $date = now()->format('Ymd');
+            $lastOrder = Order::whereDate('created_at', now())->latest()->first();
+            $lastNumber = 0;
+
+            if ($lastOrder && $lastOrder->order_num) {
+                $parts = explode('-', $lastOrder->order_num);
+                if (count($parts) == 3 && $parts[1] == $date) {
+                    $lastNumber = (int) $parts[2];
+                }
+            }
+
+            $newNumber = $lastNumber + 1;
+            $validated['order_num'] = 'AT-' . $date . '-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+
+            $order = Order::create($validated);
 
             return $this->successResponse(
                 new OrderResource($order),
@@ -92,7 +117,17 @@ class OrderController extends Controller
     public function update(OrderRequest $request, Order $order)
     {
         try {
-            $order->update($request->validated());
+            $validated = $request->validated();
+
+            // Get vehicle type from the selected vehicle
+            if (isset($validated['vehicle_id'])) {
+                $vehicle = \App\Models\Vehicle::find($validated['vehicle_id']);
+                if ($vehicle) {
+                    $validated['vehicle_type'] = $vehicle->type;
+                }
+            }
+
+            $order->update($validated);
 
             return $this->successResponse(
                 new OrderResource($order->fresh()),

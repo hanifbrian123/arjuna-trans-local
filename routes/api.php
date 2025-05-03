@@ -29,19 +29,19 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     // User profile
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    
+
     // Orders
     Route::apiResource('orders', OrderController::class);
     Route::put('/orders/{order}/assign-driver', [OrderController::class, 'assignDriver']);
     Route::put('/orders/{order}/change-status', [OrderController::class, 'changeStatus']);
-    
+
     // Drivers
     Route::apiResource('drivers', DriverController::class);
-    
-    // Vehicles
+
+    // Armada/Vehicles
     Route::apiResource('vehicles', VehicleController::class);
     Route::post('/vehicles/upload-photo', [VehicleController::class, 'uploadPhoto']);
-    
+
     // Payments
     Route::get('/payments', [PaymentController::class, 'index']);
 });

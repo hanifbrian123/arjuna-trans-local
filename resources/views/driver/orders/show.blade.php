@@ -22,9 +22,9 @@
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex align-items-center">
-                        <h5 class="card-title mb-0 flex-grow-1">Detail Order #ORD-{{ str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</h5>
+                        <h5 class="card-title mb-0 flex-grow-1">Detail Order {{ $order->order_num ?? 'ORD-' . str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</h5>
                         <div>
-                            @if($order->status == 'waiting' && !$order->driver_id)
+                            @if ($order->status == 'waiting' && !$order->driver_id)
                                 <form action="{{ route('driver.orders.accept', $order->id) }}" method="POST" class="d-inline accept-form">
                                     @csrf
                                     @method('PUT')
@@ -66,7 +66,7 @@
                         <div class="col-md-6">
                             <h5 class="mb-3">Status Order</h5>
                             <div class="mb-3">
-                                @if($order->status == 'waiting')
+                                @if ($order->status == 'waiting')
                                     <span class="badge bg-warning fs-5">Menunggu</span>
                                 @elseif($order->status == 'approved')
                                     <span class="badge bg-success fs-5">Disetujui</span>
@@ -78,8 +78,8 @@
                                     <span class="badge bg-secondary fs-5">{{ $order->status }}</span>
                                 @endif
                             </div>
-                            
-                            @if($order->driver_id && $order->driver_id == auth()->user()->driver->id)
+
+                            @if ($order->driver_id && $order->driver_id == auth()->user()->driver->id)
                                 <div class="alert alert-success mt-3">
                                     <i class="ri-user-follow-line me-2"></i> Anda ditugaskan untuk order ini
                                 </div>
@@ -147,14 +147,14 @@
                         </div>
                     </div>
 
-                    @if($order->additional_notes)
-                    <hr>
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <h5 class="mb-3">Catatan Tambahan</h5>
-                            <p>{{ $order->additional_notes }}</p>
+                    @if ($order->additional_notes)
+                        <hr>
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5 class="mb-3">Catatan Tambahan</h5>
+                                <p>{{ $order->additional_notes }}</p>
+                            </div>
                         </div>
-                    </div>
                     @endif
 
                     <div class="text-end mt-4">
@@ -167,47 +167,47 @@
 @endsection
 
 @push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Event delegation for accept form
-        document.querySelector('.accept-form')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event delegation for accept form
+            document.querySelector('.accept-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
 
-            Swal.fire({
-                title: 'Terima Order?',
-                text: 'Anda akan menerima order ini dan bertanggung jawab untuk menyelesaikannya.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, terima!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
+                Swal.fire({
+                    title: 'Terima Order?',
+                    text: 'Anda akan menerima order ini dan bertanggung jawab untuk menyelesaikannya.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, terima!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+
+            // Event delegation for complete form
+            document.querySelector('.complete-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+
+                Swal.fire({
+                    title: 'Selesaikan Order?',
+                    text: 'Anda akan menandai order ini sebagai selesai.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, selesai!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
             });
         });
-
-        // Event delegation for complete form
-        document.querySelector('.complete-form')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = this;
-
-            Swal.fire({
-                title: 'Selesaikan Order?',
-                text: 'Anda akan menandai order ini sebagai selesai.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, selesai!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-</script>
+    </script>
 @endpush

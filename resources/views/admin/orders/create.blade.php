@@ -49,7 +49,7 @@
                         <!-- Nomor Telepon -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="phoneInput" class="form-label">Nomor Telepon</label>
+                                <label for="phoneInput" class="form-label">Nomor WhatsApp</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="text"
@@ -68,21 +68,23 @@
                         <!-- Alamat -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="addressInput" class="form-label">Alamat</label>
+                                <label for="addressInput" class="form-label">Alamat Pemesan</label>
                             </div>
                             <div class="col-lg-9">
                                 <textarea
-                                    id="addressInput"
-                                    name="address"
-                                    class="form-control @error('address') is-invalid @enderror"
-                                    placeholder="Masukkan alamat lengkap"
-                                    rows="3"
-                                    required>{{ old('address') }}</textarea>
+                                          id="addressInput"
+                                          name="address"
+                                          class="form-control @error('address') is-invalid @enderror"
+                                          placeholder="Masukkan alamat lengkap"
+                                          rows="3"
+                                          required>{{ old('address') }}</textarea>
                                 @error('address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
+
+                        <hr>
 
                         <!-- Tanggal Mulai -->
                         <div class="row mb-3">
@@ -127,12 +129,12 @@
                             </div>
                             <div class="col-lg-9">
                                 <textarea
-                                    id="pickupAddressInput"
-                                    name="pickup_address"
-                                    class="form-control @error('pickup_address') is-invalid @enderror"
-                                    placeholder="Masukkan alamat penjemputan"
-                                    rows="3"
-                                    required>{{ old('pickup_address') }}</textarea>
+                                          id="pickupAddressInput"
+                                          name="pickup_address"
+                                          class="form-control @error('pickup_address') is-invalid @enderror"
+                                          placeholder="Masukkan alamat penjemputan"
+                                          rows="3"
+                                          required>{{ old('pickup_address') }}</textarea>
                                 @error('pickup_address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -165,57 +167,85 @@
                             </div>
                             <div class="col-lg-9">
                                 <textarea
-                                    id="routeInput"
-                                    name="route"
-                                    class="form-control @error('route') is-invalid @enderror"
-                                    placeholder="Masukkan rute perjalanan"
-                                    rows="3">{{ old('route') }}</textarea>
+                                          id="routeInput"
+                                          name="route"
+                                          class="form-control @error('route') is-invalid @enderror"
+                                          placeholder="Masukkan rute perjalanan"
+                                          rows="3">{{ old('route') }}</textarea>
                                 @error('route')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
 
-                        <!-- Tipe Armada -->
+                        <!-- Jumlah Armada -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="vehicleTypeInput" class="form-label">Tipe Armada</label>
+                                <label for="vehicleCountInput" class="form-label">Jumlah Armada</label>
                             </div>
                             <div class="col-lg-9">
-                                <select
-                                    id="vehicleTypeInput"
-                                    name="vehicle_type"
-                                    class="form-select @error('vehicle_type') is-invalid @enderror"
-                                    required>
-                                    <option value="" disabled selected>Pilih tipe armada</option>
-                                    <option value="Bus" {{ old('vehicle_type') == 'Bus' ? 'selected' : '' }}>Bus</option>
-                                    <option value="Minibus" {{ old('vehicle_type') == 'Minibus' ? 'selected' : '' }}>Minibus</option>
-                                    <option value="Elf" {{ old('vehicle_type') == 'Elf' ? 'selected' : '' }}>Elf</option>
-                                    <option value="Hiace" {{ old('vehicle_type') == 'Hiace' ? 'selected' : '' }}>Hiace</option>
-                                </select>
-                                @error('vehicle_type')
+                                <input type="number"
+                                       id="vehicleCountInput"
+                                       name="vehicle_count"
+                                       class="form-control @error('vehicle_count') is-invalid @enderror"
+                                       placeholder="Masukkan jumlah armada"
+                                       value="{{ old('vehicle_count', 1) }}"
+                                       min="1"
+                                       max="10"
+                                       required>
+                                @error('vehicle_count')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
 
-                        <!-- Jumlah Penumpang -->
+                        <!-- Armada -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="passengerCountInput" class="form-label">Jumlah Penumpang</label>
+                                <label for="vehicleIdsInput" class="form-label">Armada</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="number"
-                                       id="passengerCountInput"
-                                       name="passenger_count"
-                                       class="form-control @error('passenger_count') is-invalid @enderror"
-                                       placeholder="Masukkan jumlah penumpang"
-                                       value="{{ old('passenger_count') }}"
-                                       min="1"
-                                       required>
-                                @error('passenger_count')
+                                <select id="vehicleIdsInput"
+                                        name="vehicle_ids[]"
+                                        class="form-select @error('vehicle_ids') is-invalid @enderror"
+                                        data-choices data-choices-removeItem multiple
+                                        required>
+                                    @foreach ($vehicles as $vehicle)
+                                        <option value="{{ $vehicle->id }}"
+                                                {{ is_array(old('vehicle_ids')) && in_array($vehicle->id, old('vehicle_ids')) ? 'selected' : '' }}>
+                                            {{ $vehicle->name }} - {{ $vehicle->type }} ({{ $vehicle->capacity }} Seat)
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('vehicle_ids')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <small class="text-muted">Pilih satu atau lebih armada</small>
+                            </div>
+                        </div>
+
+                        <!-- Driver Pilihan -->
+                        <div class="row mb-3">
+                            <div class="col-lg-3">
+                                <label for="driverIdsInput" class="form-label">Driver Pilihan</label>
+                            </div>
+                            <div class="col-lg-9">
+                                <select
+                                        id="driverIdsInput"
+                                        name="driver_ids[]"
+                                        class="form-select @error('driver_ids') is-invalid @enderror"
+                                        data-choices data-choices-removeItem multiple
+                                        required>
+                                    @foreach ($drivers as $driver)
+                                        <option value="{{ $driver->id }}" {{ is_array(old('driver_ids')) && in_array($driver->id, old('driver_ids')) ? 'selected' : '' }}>
+                                            {{ $driver->user->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('driver_ids')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">Pilih satu atau lebih driver</small>
                             </div>
                         </div>
 
@@ -245,7 +275,7 @@
                         <!-- DP -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="downPaymentInput" class="form-label">DP</label>
+                                <label for="downPaymentInput" class="form-label">Uang Muka</label>
                             </div>
                             <div class="col-lg-9">
                                 <div class="input-group">
@@ -290,44 +320,21 @@
                         <!-- Status -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="statusInput" class="form-label">Status</label>
+                                <label for="statusInput" class="form-label">Status Pemesanan</label>
                             </div>
                             <div class="col-lg-9">
                                 <select
-                                    id="statusInput"
-                                    name="status"
-                                    class="form-select @error('status') is-invalid @enderror"
-                                    required>
+                                        id="statusInput"
+                                        name="status"
+                                        class="form-select @error('status') is-invalid @enderror"
+                                        data-choices
+                                        required>
                                     <option value="" disabled selected>Pilih status</option>
-                                    <option value="waiting" {{ old('status') == 'waiting' ? 'selected' : '' }}>Menunggu</option>
-                                    <option value="approved" {{ old('status') == 'approved' ? 'selected' : '' }}>Disetujui</option>
-                                    <option value="canceled" {{ old('status') == 'canceled' ? 'selected' : '' }}>Dibatalkan</option>
-                                    <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Selesai</option>
+                                    <option value="waiting" {{ old('status') == 'waiting' ? 'selected' : '' }}>Waiting</option>
+                                    <option value="approved" {{ old('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                                    <option value="canceled" {{ old('status') == 'canceled' ? 'selected' : '' }}>Canceled</option>
                                 </select>
                                 @error('status')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Driver -->
-                        <div class="row mb-3">
-                            <div class="col-lg-3">
-                                <label for="driverInput" class="form-label">Driver</label>
-                            </div>
-                            <div class="col-lg-9">
-                                <select
-                                    id="driverInput"
-                                    name="driver_id"
-                                    class="form-select @error('driver_id') is-invalid @enderror">
-                                    <option value="" selected>Pilih driver (opsional)</option>
-                                    @foreach(\App\Models\Driver::where('status', 'active')->get() as $driver)
-                                        <option value="{{ $driver->id }}" {{ old('driver_id') == $driver->id ? 'selected' : '' }}>
-                                            {{ $driver->user->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('driver_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -340,11 +347,11 @@
                             </div>
                             <div class="col-lg-9">
                                 <textarea
-                                    id="additionalNotesInput"
-                                    name="additional_notes"
-                                    class="form-control @error('additional_notes') is-invalid @enderror"
-                                    placeholder="Masukkan catatan tambahan (opsional)"
-                                    rows="3">{{ old('additional_notes') }}</textarea>
+                                          id="additionalNotesInput"
+                                          name="additional_notes"
+                                          class="form-control @error('additional_notes') is-invalid @enderror"
+                                          placeholder="Masukkan catatan tambahan (opsional)"
+                                          rows="3">{{ old('additional_notes') }}</textarea>
                                 @error('additional_notes')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -375,7 +382,7 @@
                 const rentalPrice = parseInt(rentalPriceInput.value) || 0;
                 const downPayment = parseInt(downPaymentInput.value) || 0;
                 const remainingCost = rentalPrice - downPayment;
-                
+
                 remainingCostInput.value = remainingCost >= 0 ? remainingCost : 0;
             }
 
@@ -384,6 +391,38 @@
 
             // Initial calculation
             calculateRemainingCost();
+
+            // Add invoice button if status is approved
+            const statusInput = document.getElementById('statusInput');
+            const formActions = document.querySelector('.text-end');
+
+            function updateInvoiceButton() {
+                // Remove existing invoice button if any
+                const existingInvoiceBtn = document.getElementById('invoiceBtn');
+                if (existingInvoiceBtn) {
+                    existingInvoiceBtn.remove();
+                }
+
+                // Add invoice button if status is approved
+                if (statusInput.value === 'approved') {
+                    const invoiceBtn = document.createElement('button');
+                    invoiceBtn.id = 'invoiceBtn';
+                    invoiceBtn.type = 'button';
+                    invoiceBtn.className = 'btn btn-success ms-2';
+                    invoiceBtn.textContent = 'Invoice';
+                    invoiceBtn.onclick = function() {
+                        // Placeholder for invoice functionality
+                        alert('Invoice functionality will be implemented here');
+                    };
+
+                    formActions.insertBefore(invoiceBtn, formActions.lastElementChild);
+                }
+            }
+
+            statusInput.addEventListener('change', updateInvoiceButton);
+
+            // Initial check for invoice button
+            updateInvoiceButton();
         });
     </script>
 @endpush

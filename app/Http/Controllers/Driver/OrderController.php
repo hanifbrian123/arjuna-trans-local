@@ -181,9 +181,6 @@ class OrderController extends Controller
                 } elseif ($row->status == 'canceled') {
                     $statusClass = 'badge bg-danger';
                     $statusText = 'Dibatalkan';
-                } elseif ($row->status == 'completed') {
-                    $statusClass = 'badge bg-info';
-                    $statusText = 'Selesai';
                 } else {
                     $statusClass = 'badge bg-secondary';
                 }
@@ -264,7 +261,7 @@ class OrderController extends Controller
         }
 
         $order->update([
-            'status' => 'completed'
+            'status' => 'approved'
         ]);
 
         return redirect()->route('driver.orders.index')->with('success', 'Order berhasil diselesaikan!');

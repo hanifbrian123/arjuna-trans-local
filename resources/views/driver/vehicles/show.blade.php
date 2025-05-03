@@ -44,8 +44,8 @@
                                         <tr>
                                             <th class="ps-0">Fasilitas</th>
                                             <td>
-                                                @if(!empty($vehicle->facilities))
-                                                    @foreach($vehicle->facilities as $facility)
+                                                @if (!empty($vehicle->facilities))
+                                                    @foreach ($vehicle->facilities as $facility)
                                                         <span class="badge bg-info me-1">{{ $facility }}</span>
                                                     @endforeach
                                                 @else
@@ -56,7 +56,7 @@
                                         <tr>
                                             <th class="ps-0">Status</th>
                                             <td>
-                                                @if($vehicle->status == 'ready')
+                                                @if ($vehicle->status == 'ready')
                                                     <span class="badge bg-success">Siap</span>
                                                 @elseif($vehicle->status == 'maintenance')
                                                     <span class="badge bg-warning">Maintenance</span>
@@ -67,18 +67,6 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="text-center">
-                                @if($vehicle->photo)
-                                    <img src="{{ asset($vehicle->photo) }}" alt="{{ $vehicle->name }}" class="img-fluid rounded" style="max-height: 200px;">
-                                @else
-                                    <div class="border rounded p-3 text-center">
-                                        <i class="ri-image-line display-4 text-muted"></i>
-                                        <p class="mt-2">Belum ada foto</p>
-                                    </div>
-                                @endif
                             </div>
                         </div>
                     </div>

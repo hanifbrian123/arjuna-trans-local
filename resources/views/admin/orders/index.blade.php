@@ -33,12 +33,11 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="statusFilter" class="form-label">Filter Status</label>
-                                <select id="statusFilter" class="form-select">
+                                <select id="statusFilter" class="form-select" data-choices>
                                     <option value="">Semua Status</option>
                                     <option value="waiting">Menunggu</option>
                                     <option value="approved">Disetujui</option>
                                     <option value="canceled">Dibatalkan</option>
-                                    <option value="completed">Selesai</option>
                                 </select>
                             </div>
                         </div>
@@ -51,7 +50,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="armadaFilter" class="form-label">Filter Armada</label>
-                                <select id="armadaFilter" class="form-select">
+                                <select id="armadaFilter" class="form-select" data-choices>
                                     <option value="">Semua Armada</option>
                                     @foreach ($vehicles as $vehicle)
                                         <option value="{{ $vehicle->type }}">{{ $vehicle->type }}</option>
@@ -62,16 +61,13 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="driverFilter" class="form-label">Filter Driver</label>
-                                <select id="driverFilter" class="form-select">
+                                <select id="driverFilter" class="form-select" data-choices>
                                     <option value="">Semua Driver</option>
                                     @foreach ($drivers as $driver)
                                         <option value="{{ $driver->id }}">{{ $driver->user->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
-                        <div class="col-md-12 mt-3 d-flex justify-content-end">
-                            <button id="resetFilters" class="btn btn-light">Reset Filter</button>
                         </div>
                     </div>
 
@@ -134,10 +130,10 @@
                         searchable: false
                     },
                     {
-                        data: 'id',
-                        name: 'id',
-                        render: function(data) {
-                            return 'ORD-' + String(data).padStart(3, '0');
+                        data: 'order_num',
+                        name: 'order_num',
+                        render: function(data, type, row) {
+                            return data ? data : ('ORD-' + String(row.id).padStart(3, '0'));
                         }
                     },
                     {
@@ -219,15 +215,6 @@
 
             // Apply filters when changed
             $('#statusFilter, #dateFilter, #armadaFilter, #driverFilter').change(function() {
-                table.draw();
-            });
-
-            // Reset filters
-            $('#resetFilters').click(function() {
-                $('#statusFilter').val('');
-                $('#dateFilter').val('');
-                $('#armadaFilter').val('');
-                $('#driverFilter').val('');
                 table.draw();
             });
 

@@ -114,10 +114,10 @@
                         searchable: false
                     },
                     {
-                        data: 'id',
-                        name: 'id',
-                        render: function(data) {
-                            return 'ORD-' + String(data).padStart(3, '0');
+                        data: 'order_num',
+                        name: 'order_num',
+                        render: function(data, type, row) {
+                            return data ? data : ('ORD-' + String(row.id).padStart(3, '0'));
                         }
                     },
                     {
