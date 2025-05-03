@@ -58,36 +58,71 @@ class OrderController extends Controller
                 $orders = $query->get();
                 $events = [];
 
-                // Define vehicle colors - using vibrant colors for better distinction
-                $vehicleColors = [
-                    'Arjuna Trans 01' => '#4285F4', // bright blue
-                    'Arjuna Trans 02' => '#EA4335', // bright red
-                    'Arjuna Trans 03' => '#9C27B0', // purple
-                    'Arjuna Trans 04' => '#34A853', // green
-                    'Arjuna Trans 05' => '#FBBC05', // yellow/amber
-                    'Hiace' => '#4285F4',           // bright blue
-                    'Elf' => '#EA4335',             // bright red
-                    'Bus' => '#9C27B0',             // purple
-                    'Avanza' => '#34A853',          // green
-                    'Innova' => '#FBBC05'           // yellow/amber
+                // Define a wide range of vibrant colors for better distinction
+                $colorPalette = [
+                    '#4285F4', // bright blue
+                    '#EA4335', // bright red
+                    '#9C27B0', // purple
+                    '#34A853', // green
+                    '#FBBC05', // yellow/amber
+                    '#FF5722', // deep orange
+                    '#00BCD4', // cyan
+                    '#795548', // brown
+                    '#607D8B', // blue grey
+                    '#E91E63', // pink
+                    '#3F51B5', // indigo
+                    '#009688', // teal
+                    '#FF9800', // orange
+                    '#8BC34A', // light green
+                    '#FFC107', // amber
+                    '#03A9F4', // light blue
+                    '#673AB7', // deep purple
+                    '#CDDC39', // lime
+                    '#2196F3', // blue
+                    '#F44336'  // red
                 ];
 
+                // Group orders by vehicle type for consistent coloring
+                $vehicleTypes = $orders->pluck('vehicle_type')->unique()->values();
+                $vehicleColors = [];
+
+                // Assign a color to each vehicle type
+                foreach ($vehicleTypes as $index => $type) {
+                    $vehicleColors[$type] = $colorPalette[$index % count($colorPalette)];
+                }
+
+                // Create a map of order IDs to colors for unique order coloring
+                $orderColors = [];
+                foreach ($orders as $index => $order) {
+                    // Generate a unique color for each order based on its ID
+                    $colorIndex = ($order->id + $index) % count($colorPalette);
+                    $orderColors[$order->id] = $colorPalette[$colorIndex];
+                }
+
                 foreach ($orders as $order) {
-                    // Set color based on vehicle type
-                    $color = '#3788d8'; // Default blue
+                    // Set color based on vehicle type for consistency
+                    $color = $vehicleColors[$order->vehicle_type] ?? '#3788d8'; // Default blue
 
-                    // Try to match vehicle type to a color
-                    foreach ($vehicleColors as $vehicleName => $vehicleColor) {
-                        if (stripos($order->vehicle_type, $vehicleName) !== false) {
-                            $color = $vehicleColor;
-                            break;
-                        }
-                    }
+                    // For more distinction, we use the order-specific color
+                    // This ensures each order has a unique color for better visual separation
+                    $color = $orderColors[$order->id];
 
-                    // Format title to be more readable
+                    // Format title to be more readable and informative
                     $title = $order->vehicle_type;
+
+                    // Add destination if available
                     if (strlen($order->destination) > 0) {
                         $title .= ' → ' . $order->destination;
+                    }
+
+                    // Add driver name if available
+                    if (!empty($order->driver_name)) {
+                        $title .= ' (' . $order->driver_name . ')';
+                    }
+
+                    // Add order number for better identification
+                    if (!empty($order->order_num)) {
+                        $title = '[' . $order->order_num . '] ' . $title;
                     }
 
                     $events[] = [

@@ -47,26 +47,28 @@
                         </div>
                     </div>
 
-                    <div class="d-flex mb-3 flex-wrap">
-                        @php
-                            $colors = ['bg-primary', 'bg-danger', 'bg-purple', 'bg-success', 'bg-warning'];
-                            $colorIndex = 0;
-                        @endphp
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title mb-2">Keterangan Warna</h6>
+                            <div class="d-flex flex-wrap">
+                                @php
+                                    $colors = ['bg-primary', 'bg-danger', 'bg-purple', 'bg-success', 'bg-warning', 'bg-info', 'bg-secondary'];
+                                    $colorIndex = 0;
 
-                        @foreach ($vehicles->where('status', 'ready')->take(5) as $vehicle)
-                            <div class="legend-item me-3 mb-2">
-                                <span class="legend-dot {{ $colors[$colorIndex % count($colors)] }} rounded-circle d-inline-block me-1" style="width: 10px; height: 10px;"></span>
-                                <span>{{ $vehicle->name }}</span>
+                                    // Get unique vehicle types
+                                    $vehicleTypes = $vehicles->pluck('type')->unique();
+                                @endphp
+
+                                @foreach ($vehicleTypes as $type)
+                                    <div class="legend-item me-3 mb-2">
+                                        <span class="legend-dot {{ $colors[$colorIndex % count($colors)] }} rounded-circle d-inline-block me-1" style="width: 10px; height: 10px;"></span>
+                                        <span>{{ $type }}</span>
+                                    </div>
+                                    @php $colorIndex++; @endphp
+                                @endforeach
+
+                                <div class="ms-auto"></div>
                             </div>
-                            @php $colorIndex++; @endphp
-                        @endforeach
-                    </div>
-
-                    <!-- Status legend -->
-                    <div class="d-flex mb-3 flex-wrap">
-                        <div class="legend-item me-3 mb-2">
-                            <span class="legend-dot bg-success rounded-circle d-inline-block me-1" style="width: 10px; height: 10px;"></span>
-                            <span>Disetujui</span>
                         </div>
                     </div>
 
@@ -177,12 +179,38 @@
             padding: 3px 6px !important;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border-left: 3px solid rgba(0, 0, 0, 0.2) !important;
+            margin-bottom: 2px !important;
+            font-size: 0.85em !important;
+        }
+
+        /* Add a subtle pattern to events for better distinction */
+        .fc-daygrid-event::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
+            background-size: 10px 10px;
+            border-radius: 4px;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        /* Make sure the text is above the pattern */
+        .fc-event-title {
+            position: relative;
+            z-index: 1;
         }
 
         /* Status-specific styling */
         .event-waiting {
-            opacity: 0.8;
+            opacity: 0.9;
             border-style: dashed !important;
+            border-width: 2px !important;
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent) !important;
+            background-size: 10px 10px !important;
         }
 
         .event-approved {
@@ -196,6 +224,24 @@
         .event-canceled {
             text-decoration: line-through;
             opacity: 0.6;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.2) 5px, rgba(255, 255, 255, 0.2) 10px) !important;
+        }
+
+        /* Legend styling */
+        .legend-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
         }
 
         /* Calendar header styling */
