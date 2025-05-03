@@ -22,36 +22,43 @@
         <div class="col-lg-12">
             <div class="card">
                 <!-- Card Header -->
-                <div class="card-header border-bottom-dashed">
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
-                        <div>
-                            <h5 class="card-title mb-0 d-flex align-items-center">
-                                LAPORAN PEMBAYARAN
-                            </h5>
-                        </div>
+                <div class="card-header border-bottom-dashed p-2 p-sm-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                        <!-- Title Section -->
+                        <h5 class="card-title mb-0">LAPORAN PEMBAYARAN</h5>
 
-                        <!-- Filter Section -->
-                        <div class="d-flex gap-2">
-                            <div class="input-group" style="max-width: 200px;">
-                                <input type="date" id="startDateFilter" class="form-control form-control-sm" placeholder="Tanggal Mulai">
+                        <!-- Filter Section - Right Aligned -->
+                        <div class="ms-auto d-flex flex-column flex-sm-row gap-2 align-items-center">
+                            <!-- Date Range -->
+                            <div style="width: 180px;">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" id="dateRangeFilter" class="form-control flatpickr-input" placeholder="Rentang Tanggal">
+                                    <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
+                                </div>
                             </div>
-                            <div class="input-group" style="max-width: 200px;">
-                                <input type="date" id="endDateFilter" class="form-control form-control-sm" placeholder="Tanggal Akhir">
-                            </div>
-                            <div class="input-group" style="max-width: 150px;">
-                                <select id="statusFilter" class="form-select form-select-sm">
+
+                            <!-- Payment Status -->
+                            <div style="width: 140px;">
+                                <select id="paymentStatusFilter" class="form-select form-select-sm">
                                     <option value="">Semua Status</option>
-                                    <option value="waiting">Menunggu</option>
-                                    <option value="approved">Disetujui</option>
-                                    <option value="completed">Selesai</option>
-                                    <option value="canceled">Dibatalkan</option>
+                                    <option value="paid">Lunas</option>
+                                    <option value="unpaid">Belum Lunas</option>
                                 </select>
                             </div>
-                            <button id="filterBtn" class="btn btn-sm btn-primary">Filter</button>
-                            <button id="resetFilterBtn" class="btn btn-sm btn-light">Reset</button>
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-2">
+                                <button id="filterBtn" class="btn btn-sm btn-primary px-3">
+                                    <i class="ri-filter-2-line"></i>
+                                </button>
+                                <button id="resetFilterBtn" class="btn btn-sm btn-light px-3">
+                                    <i class="ri-refresh-line"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <!-- End Card Header -->
 
                 <!-- Summary Cards -->
@@ -97,7 +104,7 @@
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1">
                                             <p class="text-uppercase fw-medium text-muted mb-0">Total Sisa Pembayaran</p>
-                                            <h4 class="fs-22 fw-semibold ff-secondary mb-0">Rp {{ number_format($totalRemaining, 0, ',', '.') }}</h4>
+                                            <h4 class="fs-22 fw-semibold ff-secondary mb-0" id="totalRemaining">Rp {{ number_format($totalRemaining, 0, ',', '.') }}</h4>
                                         </div>
                                         <div class="avatar-sm flex-shrink-0">
                                             <span class="avatar-title bg-warning-subtle rounded fs-3">
@@ -145,26 +152,25 @@
                                         <td>{{ $order->down_payment ? 'Rp ' . number_format($order->down_payment, 0, ',', '.') : 'Rp -' }}</td>
                                         <td>{{ $order->remaining_cost ? 'Rp ' . number_format($order->remaining_cost, 0, ',', '.') : 'Rp -' }}</td>
                                         <td>
-                                            @if ($order->status == 'waiting')
-                                                <span class="badge bg-warning">Menunggu</span>
-                                            @elseif($order->status == 'approved')
-                                                <span class="badge bg-success">Disetujui</span>
-                                            @elseif($order->status == 'completed')
-                                                <span class="badge bg-info">Selesai</span>
-                                            @elseif($order->status == 'canceled')
-                                                <span class="badge bg-danger">Dibatalkan</span>
+                                            @if ($order->remaining_cost > 0)
+                                                <span class="badge bg-warning">Belum Lunas</span>
                                             @else
-                                                <span class="badge bg-secondary">{{ $order->status }}</span>
+                                                <span class="badge bg-success">Lunas</span>
                                             @endif
                                         </td>
                                         <td>
                                             <div class="d-flex gap-2">
-                                                <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-info">
-                                                    <i class="ri-eye-fill"></i>
-                                                </a>
-                                                <a href="{{ route('admin.orders.edit', $order->id) }}" class="btn btn-sm btn-success">
-                                                    <i class="ri-pencil-fill"></i>
-                                                </a>
+                                                @if ($order->remaining_cost > 0)
+                                                    <button type="button" class="btn btn-sm btn-primary btn-complete-payment"
+                                                            data-id="{{ $order->id }}"
+                                                            data-remaining="{{ $order->remaining_cost }}">
+                                                        <i class="ri-checkbox-circle-line"></i> Pelunasan
+                                                    </button>
+                                                @else
+                                                    <button type="button" class="btn btn-sm btn-light" disabled>
+                                                        <i class="ri-checkbox-circle-line"></i> Lunas
+                                                    </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -184,6 +190,26 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
     <!--datatable responsive css-->
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap.min.css" />
+    <!--flatpickr css-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        /* Custom adjustments for dark theme */
+        .flatpickr-calendar {
+            width: auto !important;
+            font-family: inherit;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 576px) {
+            .card-header .d-flex {
+                width: 100%;
+            }
+
+            #dateRangeFilter {
+                width: 100% !important;
+            }
+        }
+    </style>
 @endpush
 
 @push('scripts')
@@ -191,56 +217,162 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <!--flatpickr js-->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+    <!--sweetalert2 js-->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             // Initialize DataTable
             var table = $('#paymentsTable').DataTable({
-                responsive: true,
-                language: {
-                    search: "Cari:",
-                    lengthMenu: "Tampilkan _MENU_ data",
-                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
-                    infoFiltered: "(disaring dari _MAX_ total data)",
-                    zeroRecords: "Tidak ada data yang cocok",
-                    paginate: {
-                        first: "Pertama",
-                        last: "Terakhir",
-                        next: "Selanjutnya",
-                        previous: "Sebelumnya"
+                responsive: true
+            });
+
+            // Initialize Flatpickr date range picker
+            const urlParams = new URLSearchParams(window.location.search);
+            let startDate = urlParams.get('start_date') || '';
+            let endDate = urlParams.get('end_date') || '';
+            let defaultDate = [];
+
+            if (startDate && endDate) {
+                defaultDate = [startDate, endDate];
+            }
+
+            // Initialize Flatpickr
+            try {
+                const flatpickrInstance = flatpickr("#dateRangeFilter", {
+                    mode: "range",
+                    dateFormat: "Y-m-d",
+                    locale: "id",
+                    defaultDate: defaultDate,
+                    altInput: true,
+                    altFormat: "j F Y",
+                    showMonths: 1,
+                    disableMobile: true,
+                    theme: 'dark'
+                });
+
+                // Filter functionality
+                $('#filterBtn').on('click', function() {
+                    const dateRange = flatpickrInstance.selectedDates;
+                    let startDate = '';
+                    let endDate = '';
+
+                    if (dateRange.length === 2) {
+                        startDate = formatDate(dateRange[0]);
+                        endDate = formatDate(dateRange[1]);
+                    } else if (dateRange.length === 1) {
+                        startDate = formatDate(dateRange[0]);
+                        endDate = startDate;
                     }
-                }
-            });
 
-            // Filter functionality
-            $('#filterBtn').on('click', function() {
-                const startDate = $('#startDateFilter').val();
-                const endDate = $('#endDateFilter').val();
-                const status = $('#statusFilter').val();
+                    const paymentStatus = $('#paymentStatusFilter').val();
 
-                // Redirect with filter parameters
-                window.location.href = "{{ route('admin.payments.index') }}" +
-                    "?start_date=" + startDate +
-                    "&end_date=" + endDate +
-                    "&status=" + status;
-            });
+                    // Redirect with filter parameters
+                    window.location.href = "{{ route('admin.payments.index') }}" +
+                        "?start_date=" + startDate +
+                        "&end_date=" + endDate +
+                        "&payment_status=" + paymentStatus;
+                });
+            } catch (e) {
+                console.error("Error initializing Flatpickr:", e);
+
+                // Fallback to simple date inputs if Flatpickr fails
+                $('#filterBtn').on('click', function() {
+                    const startDate = $('#dateRangeFilter').val();
+                    const endDate = startDate;
+                    const paymentStatus = $('#paymentStatusFilter').val();
+
+                    window.location.href = "{{ route('admin.payments.index') }}" +
+                        "?start_date=" + startDate +
+                        "&end_date=" + endDate +
+                        "&payment_status=" + paymentStatus;
+                });
+            }
 
             // Reset filter
             $('#resetFilterBtn').on('click', function() {
                 window.location.href = "{{ route('admin.payments.index') }}";
             });
 
-            // Set filter values from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('start_date')) {
-                $('#startDateFilter').val(urlParams.get('start_date'));
+            // Set payment status filter value from URL parameters
+            if (urlParams.has('payment_status')) {
+                $('#paymentStatusFilter').val(urlParams.get('payment_status'));
             }
-            if (urlParams.has('end_date')) {
-                $('#endDateFilter').val(urlParams.get('end_date'));
+
+            // Helper function to format date as YYYY-MM-DD
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
             }
-            if (urlParams.has('status')) {
-                $('#statusFilter').val(urlParams.get('status'));
-            }
+
+            // Handle payment completion
+            $('.btn-complete-payment').on('click', function() {
+                const orderId = $(this).data('id');
+                const remainingAmount = $(this).data('remaining');
+                const button = $(this);
+
+                Swal.fire({
+                    title: 'Konfirmasi Pelunasan',
+                    text: `Apakah Anda yakin ingin melunasi pembayaran sebesar Rp ${new Intl.NumberFormat('id-ID').format(remainingAmount)}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lunasi!',
+                    cancelButtonText: 'Batal',
+                    showLoaderOnConfirm: true,
+                    preConfirm: () => {
+                        return $.ajax({
+                            url: "{{ route('admin.payments.complete') }}",
+                            type: 'POST',
+                            data: {
+                                order_id: orderId,
+                                _token: "{{ csrf_token() }}"
+                            },
+                            dataType: 'json'
+                        }).then(response => {
+                            return response;
+                        }).catch(error => {
+                            Swal.showValidationMessage(
+                                `Request failed: ${error.responseJSON?.message || 'Terjadi kesalahan pada server'}`
+                            );
+                        });
+                    },
+                    allowOutsideClick: () => !Swal.isLoading()
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: result.value.message || 'Pembayaran berhasil dilunasi',
+                            icon: 'success'
+                        }).then(() => {
+                            // Update the UI without refreshing
+                            const row = button.closest('tr');
+                            row.find('td:nth-child(9)').html('<span class="badge bg-success">Lunas</span>');
+
+                            // Ganti tombol pelunasan dengan tombol disabled
+                            const buttonContainer = button.parent();
+                            buttonContainer.html(`
+                                <button type="button" class="btn btn-sm btn-light" disabled>
+                                    <i class="ri-checkbox-circle-line"></i> Lunas
+                                </button>
+                            `);
+
+                            // Update the summary cards
+                            // Ambil teks dari elemen totalRemaining
+                            const totalRemainingText = $('#totalRemaining').text();
+                            // Ekstrak angka dari format "Rp 1.234.567"
+                            const currentRemainingTotal = parseInt(totalRemainingText.replace(/\D/g, ''));
+                            // Kurangi dengan jumlah yang dibayarkan
+                            const newRemainingTotal = currentRemainingTotal - remainingAmount;
+                            // Format dan tampilkan nilai baru
+                            $('#totalRemaining').text(`Rp ${new Intl.NumberFormat('id-ID').format(newRemainingTotal)}`);
+                        });
+                    }
+                });
+            });
         });
     </script>
 @endpush

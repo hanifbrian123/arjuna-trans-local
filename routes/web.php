@@ -56,6 +56,7 @@ Route::middleware(['auth'])->group(function () {
         // Payment Reports
         Route::prefix('payments')->name('payments.')->group(function () {
             Route::get('/', [PaymentController::class, 'index'])->name('index');
+            Route::post('/complete', [PaymentController::class, 'complete'])->name('complete');
         });
     });
 

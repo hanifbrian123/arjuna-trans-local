@@ -54,7 +54,7 @@
                                     <a href="{{ route('admin.orders.calendar') }}" class="nav-link">Kalender Order</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('admin.orders.create') }}" class="nav-link">Buat Order</a>
+                                    <a href="{{ route('admin.payments.index') }}" class="nav-link">Laporan Payment</a>
                                 </li>
                             @endrole
 
@@ -95,14 +95,7 @@
                     </li>
                 @endrole
 
-                <!-- Payment Report - Only visible to admin -->
-                @role('admin')
-                    <li class="nav-item">
-                        <a class="nav-link menu-link" href="{{ route('admin.payments.index') }}">
-                            <i class="mdi mdi-cash-multiple"></i> <span>Laporan Payment</span>
-                        </a>
-                    </li>
-                @endrole
+
             </ul>
         </div>
         <!-- Sidebar -->
