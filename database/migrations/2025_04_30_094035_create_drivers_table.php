@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->text('address');
             $table->string('phone_number');
-            $table->enum('license_type', ['A', 'B', 'C', 'D', 'E']);
+            $table->json('license_type');
             $table->enum('status', ['active', 'inactive']);
             $table->text('notes')->nullable();
             $table->timestamps();

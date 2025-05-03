@@ -17,6 +17,10 @@ class Driver extends Model
         'notes',
     ];
 
+    protected $casts = [
+        'license_type' => 'array',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

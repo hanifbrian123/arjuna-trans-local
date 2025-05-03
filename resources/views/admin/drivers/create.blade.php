@@ -96,12 +96,12 @@
                             </div>
                             <div class="col-lg-9">
                                 <textarea
-                                    id="addressInput"
-                                    name="address"
-                                    class="form-control @error('address') is-invalid @enderror"
-                                    placeholder="Masukkan alamat lengkap"
-                                    rows="3"
-                                    required>{{ old('address') }}</textarea>
+                                          id="addressInput"
+                                          name="address"
+                                          class="form-control @error('address') is-invalid @enderror"
+                                          placeholder="Masukkan alamat lengkap"
+                                          rows="3"
+                                          required>{{ old('address') }}</textarea>
                                 @error('address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -130,23 +130,32 @@
                         <!-- Tipe SIM -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="licenseTypeInput" class="form-label">Tipe SIM</label>
+                                <label class="form-label">Tipe SIM</label>
                             </div>
                             <div class="col-lg-9">
-                                <select
-                                    id="licenseTypeInput"
-                                    name="license_type"
-                                    class="form-select @error('license_type') is-invalid @enderror"
-                                    required>
-                                    <option value="" disabled selected>Pilih tipe SIM</option>
-                                    <option value="A" {{ old('license_type') == 'A' ? 'selected' : '' }}>SIM A</option>
-                                    <option value="B" {{ old('license_type') == 'B' ? 'selected' : '' }}>SIM B</option>
-                                    <option value="C" {{ old('license_type') == 'C' ? 'selected' : '' }}>SIM C</option>
-                                    <option value="D" {{ old('license_type') == 'D' ? 'selected' : '' }}>SIM D</option>
-                                    <option value="E" {{ old('license_type') == 'E' ? 'selected' : '' }}>SIM E</option>
-                                </select>
+                                <input type="hidden" name="license_type" id="licenseTypeInput" value="{{ old('license_type') }}">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input license-type-checkbox" type="checkbox" id="licenseTypeA" value="A" data-type="A">
+                                    <label class="form-check-label" for="licenseTypeA">SIM A</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input license-type-checkbox" type="checkbox" id="licenseTypeB" value="B" data-type="B">
+                                    <label class="form-check-label" for="licenseTypeB">SIM B</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input license-type-checkbox" type="checkbox" id="licenseTypeC" value="C" data-type="C">
+                                    <label class="form-check-label" for="licenseTypeC">SIM C</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input license-type-checkbox" type="checkbox" id="licenseTypeD" value="D" data-type="D">
+                                    <label class="form-check-label" for="licenseTypeD">SIM D</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input license-type-checkbox" type="checkbox" id="licenseTypeE" value="E" data-type="E">
+                                    <label class="form-check-label" for="licenseTypeE">SIM E</label>
+                                </div>
                                 @error('license_type')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -158,10 +167,10 @@
                             </div>
                             <div class="col-lg-9">
                                 <select
-                                    id="statusInput"
-                                    name="status"
-                                    class="form-select @error('status') is-invalid @enderror"
-                                    required>
+                                        id="statusInput"
+                                        name="status"
+                                        class="form-select @error('status') is-invalid @enderror" data-choices
+                                        required>
                                     <option value="" disabled selected>Pilih status</option>
                                     <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Aktif</option>
                                     <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
@@ -175,15 +184,15 @@
                         <!-- Catatan -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="notesInput" class="form-label">Catatan</label>
+                                <label for="notesInput" class="form-label">Keterangan</label>
                             </div>
                             <div class="col-lg-9">
                                 <textarea
-                                    id="notesInput"
-                                    name="notes"
-                                    class="form-control @error('notes') is-invalid @enderror"
-                                    placeholder="Masukkan catatan (opsional)"
-                                    rows="3">{{ old('notes') }}</textarea>
+                                          id="notesInput"
+                                          name="notes"
+                                          class="form-control @error('notes') is-invalid @enderror"
+                                          placeholder="Masukkan catatan (opsional)"
+                                          rows="3">{{ old('notes') }}</textarea>
                                 @error('notes')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -201,3 +210,35 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            // Handle license type checkboxes
+            $('.license-type-checkbox').on('change', function() {
+                updateLicenseTypeInput();
+            });
+
+            // Initialize checkboxes based on hidden input value
+            initLicenseTypeCheckboxes();
+
+            function initLicenseTypeCheckboxes() {
+                const licenseTypeValue = $('#licenseTypeInput').val();
+                if (licenseTypeValue) {
+                    const licenseTypes = licenseTypeValue.split(',');
+                    licenseTypes.forEach(type => {
+                        $(`#licenseType${type}`).prop('checked', true);
+                    });
+                }
+            }
+
+            function updateLicenseTypeInput() {
+                const selectedTypes = [];
+                $('.license-type-checkbox:checked').each(function() {
+                    selectedTypes.push($(this).data('type'));
+                });
+                $('#licenseTypeInput').val(selectedTypes.join(','));
+            }
+        });
+    </script>
+@endpush

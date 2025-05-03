@@ -16,7 +16,7 @@ class DriverFactory extends Factory
             'user_id' => User::factory(),
             'address' => $this->faker->address(),
             'phone_number' => $this->faker->phoneNumber(),
-            'license_type' => $this->faker->randomElement(['A', 'B', 'C', 'D', 'E']),
+            'license_type' => $this->faker->randomElements(['A', 'B', 'C', 'D', 'E'], $this->faker->numberBetween(1, 3)),
             'status' => $this->faker->randomElement(['active', 'inactive']),
             'notes' => $this->faker->optional(0.7)->paragraph(),
         ];
@@ -30,7 +30,7 @@ class DriverFactory extends Factory
         return $this->afterCreating(function (Driver $driver) {
             // Ensure the user has the driver role
             $driver->user->assignRole('driver');
-            
+
             // Update the user's phone to match the driver's phone
             $driver->user->update(['phone' => $driver->phone_number]);
         });
@@ -41,7 +41,7 @@ class DriverFactory extends Factory
      */
     public function active(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'status' => 'active',
         ]);
     }
@@ -51,7 +51,7 @@ class DriverFactory extends Factory
      */
     public function inactive(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'status' => 'inactive',
         ]);
     }

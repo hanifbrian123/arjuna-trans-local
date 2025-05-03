@@ -28,7 +28,7 @@ class DriverController extends Controller
             'password' => 'required|min:6',
             'address' => 'required',
             'phone_number' => 'required',
-            'license_type' => 'required|in:A,B,C,D,E',
+            'license_type' => 'required|string',
             'status' => 'required|in:active,inactive',
             'notes' => 'nullable',
         ]);
@@ -45,11 +45,11 @@ class DriverController extends Controller
         $user->assignRole('driver');
 
         // Create driver profile
-        $driver = Driver::create([
+        Driver::create([
             'user_id' => $user->id,
             'address' => $validated['address'],
             'phone_number' => $validated['phone_number'],
-            'license_type' => $validated['license_type'],
+            'license_type' => !empty($validated['license_type']) ? explode(',', $validated['license_type']) : [],
             'status' => $validated['status'],
             'notes' => $validated['notes'] ?? null,
         ]);
@@ -75,7 +75,7 @@ class DriverController extends Controller
             'password' => 'nullable|min:6',
             'address' => 'required',
             'phone_number' => 'required',
-            'license_type' => 'required|in:A,B,C,D,E',
+            'license_type' => 'required|string',
             'status' => 'required|in:active,inactive',
             'notes' => 'nullable',
         ]);
@@ -96,7 +96,7 @@ class DriverController extends Controller
         $driver->update([
             'address' => $validated['address'],
             'phone_number' => $validated['phone_number'],
-            'license_type' => $validated['license_type'],
+            'license_type' => !empty($validated['license_type']) ? explode(',', $validated['license_type']) : [],
             'status' => $validated['status'],
             'notes' => $validated['notes'] ?? null,
         ]);
