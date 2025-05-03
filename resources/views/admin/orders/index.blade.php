@@ -43,8 +43,11 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label for="dateFilter" class="form-label">Filter Tanggal</label>
-                                <input type="date" id="dateFilter" class="form-control">
+                                <label for="dateRangeFilter" class="form-label">Filter Tanggal Pakai</label>
+                                <div class="input-group">
+                                    <input type="text" id="dateRangeFilter" class="form-control flatpickr-input" placeholder="Rentang Tanggal">
+                                    <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -101,6 +104,22 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
     <!--datatable responsive css-->
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap.min.css" />
+    <!--flatpickr css-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        /* Custom adjustments for dark theme */
+        .flatpickr-calendar {
+            width: auto !important;
+            font-family: inherit;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 576px) {
+            #dateRangeFilter {
+                width: 100% !important;
+            }
+        }
+    </style>
 @endpush
 
 @push('scripts')
@@ -108,8 +127,31 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <!--flatpickr js-->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
     <script>
         $(document).ready(function() {
+            // Initialize Flatpickr date range picker
+            const flatpickrInstance = flatpickr("#dateRangeFilter", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                locale: "id",
+                altInput: true,
+                altFormat: "j F Y",
+                showMonths: 1,
+                disableMobile: true,
+                theme: 'dark'
+            });
+
+            // Helper function to format date
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
             // Initialize DataTable
             var table = $('#ordersTable').DataTable({
                 processing: true,
@@ -118,7 +160,17 @@
                     url: "{{ route('admin.orders.index') }}",
                     data: function(d) {
                         d.status = $('#statusFilter').val();
-                        d.date = $('#dateFilter').val();
+
+                        // Get date range from flatpickr
+                        const dateRange = flatpickrInstance.selectedDates;
+                        if (dateRange.length === 2) {
+                            d.start_date = formatDate(dateRange[0]);
+                            d.end_date = formatDate(dateRange[1]);
+                        } else if (dateRange.length === 1) {
+                            d.start_date = formatDate(dateRange[0]);
+                            d.end_date = formatDate(dateRange[0]);
+                        }
+
                         d.vehicle_type = $('#armadaFilter').val();
                         d.driver_id = $('#driverFilter').val();
                     }
@@ -214,7 +266,12 @@
             });
 
             // Apply filters when changed
-            $('#statusFilter, #dateFilter, #armadaFilter, #driverFilter').change(function() {
+            $('#statusFilter, #armadaFilter, #driverFilter').change(function() {
+                table.draw();
+            });
+
+            // Apply date range filter when flatpickr changes
+            flatpickrInstance.config.onChange.push(function() {
                 table.draw();
             });
 

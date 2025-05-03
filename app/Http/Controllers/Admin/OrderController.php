@@ -156,8 +156,19 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter by date
-        if ($request->has('date') && $request->date) {
+        // Filter by date range
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $query->where(function ($q) use ($request) {
+                $q->whereBetween('start_date', [$request->start_date, $request->end_date])
+                    ->orWhereBetween('end_date', [$request->start_date, $request->end_date])
+                    ->orWhere(function ($q2) use ($request) {
+                        $q2->where('start_date', '<=', $request->start_date)
+                            ->where('end_date', '>=', $request->end_date);
+                    });
+            });
+        }
+        // Backward compatibility for single date filter
+        elseif ($request->has('date') && $request->date) {
             $date = $request->date;
             $query->whereDate('start_date', '<=', $date)
                 ->whereDate('end_date', '>=', $date);
