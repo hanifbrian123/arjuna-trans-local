@@ -44,10 +44,7 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="dateRangeFilter" class="form-label">Filter Tanggal Pakai</label>
-                                <div class="input-group">
-                                    <input type="text" id="dateRangeFilter" class="form-control flatpickr-input" placeholder="Rentang Tanggal">
-                                    <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
-                                </div>
+                                <input type="text" id="dateRangeFilter" class="form-control flatpickr-input" placeholder="Rentang Tanggal">
                             </div>
                         </div>
                         <div class="col-md-3">
