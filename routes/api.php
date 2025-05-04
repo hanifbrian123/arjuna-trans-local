@@ -32,6 +32,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 
     // Orders
     Route::apiResource('orders', OrderController::class);
+    Route::get('/calendar', [OrderController::class, 'calendar']);
     Route::put('/orders/{order}/assign-driver', [OrderController::class, 'assignDriver']);
     Route::put('/orders/{order}/change-status', [OrderController::class, 'changeStatus']);
 
@@ -44,4 +45,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 
     // Payments
     Route::get('/payments', [PaymentController::class, 'index']);
+    Route::post('/payments/complete', [PaymentController::class, 'completePayment']);
 });

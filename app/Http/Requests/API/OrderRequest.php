@@ -23,16 +23,31 @@ class OrderRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'customer_id' => 'required|exists:users,id',
-            'pickup_location' => 'required|string|max:255',
+        $rules = [
+            'name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'address' => 'required|string|max:500',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'pickup_address' => 'required|string|max:500',
             'destination' => 'required|string|max:255',
-            'pickup_date' => 'required|date',
-            'pickup_time' => 'required',
-            'vehicle_id' => 'required|exists:vehicles,id',
-            'total_price' => 'required|numeric',
-            'notes' => 'nullable|string',
+            'route' => 'required|string|max:1000',
+            'vehicle_count' => 'required|integer|min:1|max:10',
+            'vehicle_type' => 'required|string|max:255',
+            'rental_price' => 'required|numeric|min:0',
+            'down_payment' => 'nullable|numeric|min:0|lte:rental_price',
+            'status' => 'required|in:waiting,approved,canceled',
+            'additional_notes' => 'nullable|string|max:1000',
+            'vehicle_ids' => 'required|array',
+            'vehicle_ids.*' => 'exists:vehicles,id',
         ];
+
+        // If this is an update request, make driver_id optional
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            $rules['driver_id'] = 'nullable|exists:drivers,id';
+        }
+
+        return $rules;
     }
 
     /**
@@ -43,17 +58,34 @@ class OrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'customer_id.required' => 'ID pelanggan harus diisi',
-            'customer_id.exists' => 'Pelanggan tidak ditemukan',
-            'pickup_location.required' => 'Lokasi penjemputan harus diisi',
+            'name.required' => 'Nama pemesan harus diisi',
+            'phone_number.required' => 'Nomor telepon harus diisi',
+            'address.required' => 'Alamat harus diisi',
+            'start_date.required' => 'Tanggal mulai harus diisi',
+            'start_date.date' => 'Format tanggal mulai tidak valid',
+            'end_date.required' => 'Tanggal selesai harus diisi',
+            'end_date.date' => 'Format tanggal selesai tidak valid',
+            'end_date.after' => 'Tanggal selesai harus setelah tanggal mulai',
+            'pickup_address.required' => 'Alamat penjemputan harus diisi',
             'destination.required' => 'Tujuan harus diisi',
-            'pickup_date.required' => 'Tanggal penjemputan harus diisi',
-            'pickup_date.date' => 'Format tanggal penjemputan tidak valid',
-            'pickup_time.required' => 'Waktu penjemputan harus diisi',
-            'vehicle_id.required' => 'ID kendaraan harus diisi',
-            'vehicle_id.exists' => 'Kendaraan tidak ditemukan',
-            'total_price.required' => 'Total harga harus diisi',
-            'total_price.numeric' => 'Total harga harus berupa angka',
+            'route.required' => 'Rute harus diisi',
+            'vehicle_count.required' => 'Jumlah kendaraan harus diisi',
+            'vehicle_count.integer' => 'Jumlah kendaraan harus berupa angka',
+            'vehicle_count.min' => 'Jumlah kendaraan minimal 1',
+            'vehicle_count.max' => 'Jumlah kendaraan maksimal 10',
+            'vehicle_type.required' => 'Tipe kendaraan harus diisi',
+            'rental_price.required' => 'Harga sewa harus diisi',
+            'rental_price.numeric' => 'Harga sewa harus berupa angka',
+            'rental_price.min' => 'Harga sewa minimal 0',
+            'down_payment.numeric' => 'Uang muka harus berupa angka',
+            'down_payment.min' => 'Uang muka minimal 0',
+            'down_payment.lte' => 'Uang muka tidak boleh lebih dari harga sewa',
+            'status.required' => 'Status harus diisi',
+            'status.in' => 'Status harus salah satu dari: waiting, approved, canceled',
+            'vehicle_ids.required' => 'ID kendaraan harus diisi',
+            'vehicle_ids.array' => 'ID kendaraan harus berupa array',
+            'vehicle_ids.*.exists' => 'Kendaraan tidak ditemukan',
+            'driver_id.exists' => 'Driver tidak ditemukan',
         ];
     }
 

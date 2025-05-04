@@ -24,19 +24,148 @@ class OrderController extends Controller
      * Menampilkan daftar pesanan
      *
      * Endpoint ini digunakan untuk mendapatkan daftar semua pesanan.
+     * Dapat difilter berdasarkan tanggal, status, dan driver.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with(['user', 'driver', 'vehicle'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        try {
+            $query = Order::with(['user', 'driver', 'vehicles']);
 
-        return $this->successResponse(
-            OrderResource::collection($orders),
-            'Daftar pesanan berhasil dimuat'
-        );
+            // Filter by date range if provided
+            if ($request->has('start_date') && $request->has('end_date')) {
+                $query->where(function ($q) use ($request) {
+                    $q->whereBetween('start_date', [$request->start_date, $request->end_date])
+                        ->orWhereBetween('end_date', [$request->start_date, $request->end_date])
+                        ->orWhere(function ($q2) use ($request) {
+                            $q2->where('start_date', '<=', $request->start_date)
+                                ->where('end_date', '>=', $request->end_date);
+                        });
+                });
+            }
+
+            // Filter by status if provided
+            if ($request->has('status') && $request->status) {
+                $query->where('status', $request->status);
+            }
+
+            // Filter by driver if provided
+            if ($request->has('driver_id') && $request->driver_id) {
+                $query->where('driver_id', $request->driver_id);
+            }
+
+            // Filter by vehicle/armada if provided
+            if ($request->has('vehicle_type') && $request->vehicle_type) {
+                $query->where('vehicle_type', $request->vehicle_type);
+            }
+
+            // Order by start date (newest first) by default
+            $query->orderBy('start_date', 'desc');
+
+            $orders = $query->get();
+
+            return $this->successResponse(
+                OrderResource::collection($orders),
+                'Daftar pesanan berhasil dimuat'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal memuat daftar pesanan: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Menampilkan daftar pesanan untuk kalender
+     *
+     * Endpoint ini digunakan untuk mendapatkan daftar pesanan untuk tampilan kalender.
+     * Hanya menampilkan pesanan dengan status 'approved'.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function calendar(Request $request)
+    {
+        try {
+            $query = Order::with(['user', 'driver', 'vehicles'])
+                ->where('status', 'approved');
+
+            // Filter by date range if provided
+            if ($request->has('start') && $request->has('end')) {
+                $query->where(function ($q) use ($request) {
+                    $q->whereBetween('start_date', [$request->start, $request->end])
+                        ->orWhereBetween('end_date', [$request->start, $request->end])
+                        ->orWhere(function ($q2) use ($request) {
+                            $q2->where('start_date', '<=', $request->start)
+                                ->where('end_date', '>=', $request->end);
+                        });
+                });
+            }
+
+            // Filter by driver if provided
+            if ($request->has('driver_id') && $request->driver_id) {
+                $query->where('driver_id', $request->driver_id);
+            }
+
+            // Filter by vehicle/armada if provided
+            if ($request->has('vehicle_type') && $request->vehicle_type) {
+                $query->where('vehicle_type', $request->vehicle_type);
+            }
+
+            $orders = $query->get();
+
+            // Format data for calendar
+            $events = $orders->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'title' => $order->name . ' - ' . $order->vehicle_type,
+                    'start' => $order->start_date->format('Y-m-d\TH:i:s'),
+                    'end' => $order->end_date->format('Y-m-d\TH:i:s'),
+                    'extendedProps' => [
+                        'order_num' => $order->order_num,
+                        'customer' => $order->name,
+                        'phone' => $order->phone_number,
+                        'destination' => $order->destination,
+                        'route' => $order->route,
+                        'pickup_address' => $order->pickup_address,
+                        'driver_name' => $order->driver ? $order->driver->user->name : null,
+                        'vehicle_type' => $order->vehicle_type,
+                        'status' => $order->status,
+                    ],
+                    'backgroundColor' => $this->getEventColor($order->vehicle_type),
+                    'borderColor' => $this->getEventColor($order->vehicle_type),
+                ];
+            });
+
+            return $this->successResponse(
+                $events,
+                'Data kalender berhasil dimuat'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gagal memuat data kalender: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get color for calendar event based on vehicle type
+     *
+     * @param string $vehicleType
+     * @return string
+     */
+    private function getEventColor($vehicleType)
+    {
+        $colors = [
+            'ISUZU ELF LONG' => '#4CAF50',
+            'ISUZU ELF SHORT' => '#2196F3',
+            'TOYOTA HIACE' => '#FF9800',
+            'TOYOTA ALPHARD' => '#9C27B0',
+            'MERCEDES BENZ SPRINTER' => '#F44336',
+            'TOYOTA AVANZA' => '#00BCD4',
+            'TOYOTA INNOVA' => '#795548',
+            'TOYOTA FORTUNER' => '#607D8B',
+        ];
+
+        return $colors[$vehicleType] ?? '#3788d8'; // Default color
     }
 
     /**
@@ -52,12 +181,17 @@ class OrderController extends Controller
         try {
             $validated = $request->validated();
 
-            // Get vehicle type from the selected vehicle
-            if (isset($validated['vehicle_id'])) {
-                $vehicle = \App\Models\Vehicle::find($validated['vehicle_id']);
-                if ($vehicle) {
-                    $validated['vehicle_type'] = $vehicle->type;
-                }
+            // Calculate remaining cost if down payment is provided
+            if (isset($validated['down_payment']) && $validated['down_payment'] > 0) {
+                $validated['remaining_cost'] = $validated['rental_price'] - $validated['down_payment'];
+            } else {
+                $validated['down_payment'] = 0;
+                $validated['remaining_cost'] = $validated['rental_price'];
+            }
+
+            // Set user_id from authenticated user if not provided
+            if (!isset($validated['user_id'])) {
+                $validated['user_id'] = auth()->id();
             }
 
             // Generate order number (format: AT-YYYYMMDD-XXX)
@@ -75,10 +209,16 @@ class OrderController extends Controller
             $newNumber = $lastNumber + 1;
             $validated['order_num'] = 'AT-' . $date . '-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
 
+            // Create the order
             $order = Order::create($validated);
 
+            // Attach vehicles
+            if (isset($validated['vehicle_ids']) && is_array($validated['vehicle_ids'])) {
+                $order->vehicles()->attach($validated['vehicle_ids']);
+            }
+
             return $this->successResponse(
-                new OrderResource($order),
+                new OrderResource($order->load(['user', 'driver', 'vehicles'])),
                 'Pesanan berhasil dibuat',
                 201
             );
@@ -97,7 +237,7 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $order->load(['user', 'driver', 'vehicle']);
+        $order->load(['user', 'driver', 'vehicles']);
 
         return $this->successResponse(
             new OrderResource($order),
@@ -119,18 +259,25 @@ class OrderController extends Controller
         try {
             $validated = $request->validated();
 
-            // Get vehicle type from the selected vehicle
-            if (isset($validated['vehicle_id'])) {
-                $vehicle = \App\Models\Vehicle::find($validated['vehicle_id']);
-                if ($vehicle) {
-                    $validated['vehicle_type'] = $vehicle->type;
-                }
+            // Calculate remaining cost if down payment is provided
+            if (isset($validated['down_payment']) && isset($validated['rental_price'])) {
+                $validated['remaining_cost'] = $validated['rental_price'] - $validated['down_payment'];
+            } elseif (isset($validated['down_payment'])) {
+                $validated['remaining_cost'] = $order->rental_price - $validated['down_payment'];
+            } elseif (isset($validated['rental_price'])) {
+                $validated['remaining_cost'] = $validated['rental_price'] - ($order->down_payment ?? 0);
             }
 
+            // Update the order
             $order->update($validated);
 
+            // Update vehicles if provided
+            if (isset($validated['vehicle_ids']) && is_array($validated['vehicle_ids'])) {
+                $order->vehicles()->sync($validated['vehicle_ids']);
+            }
+
             return $this->successResponse(
-                new OrderResource($order->fresh()),
+                new OrderResource($order->fresh()->load(['user', 'driver', 'vehicles'])),
                 'Pesanan berhasil diperbarui'
             );
         } catch (\Exception $e) {
