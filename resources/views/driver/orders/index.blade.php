@@ -211,11 +211,8 @@
                         searchable: false
                     },
                     {
-                        data: 'id',
-                        name: 'id',
-                        render: function(data) {
-                            return 'ORD-' + String(data).padStart(3, '0');
-                        }
+                        data: 'order_num',
+                        name: 'order_num',
                     },
                     {
                         data: 'created_at',

@@ -22,7 +22,7 @@
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex align-items-center">
-                        <h5 class="card-title mb-0 flex-grow-1">Detail Order {{ $order->order_num ?? 'ORD-' . str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</h5>
+                        <h5 class="card-title mb-0 flex-grow-1">Detail Order {{ $order->order_num }}</h5>
                         <div>
                             @if ($order->user_id == auth()->id() || ($order->status == 'waiting' && !$order->driver_id))
                                 <a href="{{ route('driver.orders.edit', $order->id) }}" class="btn btn-primary">

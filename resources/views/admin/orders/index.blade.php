@@ -223,9 +223,6 @@
                     {
                         data: 'order_num',
                         name: 'order_num',
-                        render: function(data, type, row) {
-                            return data ? data : ('ORD-' + String(row.id).padStart(3, '0'));
-                        }
                     },
                     {
                         data: 'created_at',

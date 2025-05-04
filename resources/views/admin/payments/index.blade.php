@@ -138,7 +138,7 @@
                                 @foreach ($orders as $index => $order)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>ORD-{{ str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</td>
+                                        <td>{{ $order->order_num }}</td>
                                         <td>
                                             {{ $order->name }}<br>
                                             <small>{{ $order->phone_number }}</small>
