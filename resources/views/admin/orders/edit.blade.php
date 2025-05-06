@@ -19,7 +19,7 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">
+            <div class="card main-page">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Form Edit Order</h5>
                 </div>
@@ -354,7 +354,7 @@
                         <!-- Tombol Simpan -->
                         <div class="text-end">
                             <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">Kembali</a>
-                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
                         </div>
                     </form>
                 </div>
@@ -405,13 +405,29 @@
                     invoiceBtn.type = 'button';
                     invoiceBtn.className = 'btn btn-success ms-2';
                     invoiceBtn.textContent = 'Invoice';
-                    invoiceBtn.onclick = function() {
-                        // Placeholder for invoice functionality
-                        alert('Invoice functionality will be implemented here');
+
+                    invoiceBtn.onclick = function cetakInvoiceButton() {
+                        const id = "{{ $order->id }}";                        
+                        $.get("{!! route('admin.orders.cetak-form') !!}", {
+                            id: id
+                        }).done(function(data) {
+                            if (data.status == 'success') {
+                                var w = window.open();
+                                $(w.document.body).html(data.html);
+                                setTimeout(function () {
+                                    w.focus();
+                                    w.print();
+                                    w.close();
+                                }, 500);
+                            } else {
+                                $('.main-page').show();
+                            }
+                        });
                     };
 
                     formActions.insertBefore(invoiceBtn, formActions.lastElementChild);
                 }
+
             }
 
             statusInput.addEventListener('change', updateInvoiceButton);

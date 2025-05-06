@@ -273,7 +273,7 @@
                 </form>
 
                 <div class="text-center mt-4">
-                    <p class="footer-text">© {{ date('Y') }} {{ config('app.name') }} - Design & Develop by CV. Netlab</p>
+                    <p class="footer-text">© {{ date('Y') }} {{ config('app.name') }} - Developed by CV. NATUSI</p>
                 </div>
             </div>
         </div>

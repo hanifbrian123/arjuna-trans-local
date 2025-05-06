@@ -22,7 +22,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <p class="text-uppercase fw-medium text-muted mb-0">Order Menunggu</p>
+                            <p class="text-uppercase fw-medium text-muted mb-0">Order Waiting</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-end justify-content-between mt-4">
@@ -45,7 +45,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <p class="text-uppercase fw-medium text-muted mb-0">Perjalanan Aktif</p>
+                            <p class="text-uppercase fw-medium text-muted mb-0">On Trip</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-end justify-content-between mt-4">
@@ -68,7 +68,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <p class="text-uppercase fw-medium text-muted mb-0">Total Armada</p>
+                            <p class="text-uppercase fw-medium text-muted mb-0">Armada</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-end justify-content-between mt-4">
@@ -91,7 +91,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <p class="text-uppercase fw-medium text-muted mb-0">Total Driver</p>
+                            <p class="text-uppercase fw-medium text-muted mb-0">Driver</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-end justify-content-between mt-4">

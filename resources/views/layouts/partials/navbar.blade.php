@@ -7,7 +7,7 @@
                 <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
             </span>
             <span class="logo-lg">
-                <img src="{{ asset('assets/images/logo-dark.png') }}" alt="" height="17">
+                <img src="{{ asset('assets/images/arjuna-logo.png') }}" alt="" height="50">
             </span>
         </a>
         <!-- Light Logo-->
@@ -42,16 +42,16 @@
                 <!-- Order Management -->
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarOrder" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarOrder">
-                        <i class="mdi mdi-cart-outline"></i> <span>Order</span>
+                        <i class="mdi mdi-cart-outline"></i> <span>Orders</span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarOrder">
                         <ul class="nav nav-sm flex-column">
                             @role('admin')
                                 <li class="nav-item">
-                                    <a href="{{ route('admin.orders.index') }}" class="nav-link">Semua Order</a>
+                                    <a href="{{ route('admin.orders.index') }}" class="nav-link">Data Orders</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('admin.orders.calendar') }}" class="nav-link">Kalender Order</a>
+                                    <a href="{{ route('admin.orders.calendar') }}" class="nav-link">Calender Orders</a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('admin.payments.index') }}" class="nav-link">Laporan Payment</a>

@@ -28,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{order}', [AdminOrderController::class, 'update'])->name('update');
             Route::delete('/{order}', [AdminOrderController::class, 'destroy'])->name('destroy');
             Route::get('/{order}/detail', [AdminOrderController::class, 'detail'])->name('detail');
+            Route::get('/cetak', [AdminOrderController::class, 'cetakInvoice'])->name('cetak-form');
+            Route::get('/{order}/cetak', [AdminOrderController::class, 'cetakInvoice'])->name('cetak');
         });
 
         // Driver Management

@@ -1,6 +1,12 @@
 @extends('layouts.master')
 
 @section('title', 'Kalender Order')
+<style>
+    .fc-event {
+        cursor: pointer;
+    }
+</style>
+
 
 @section('content')
     <div class="row">
