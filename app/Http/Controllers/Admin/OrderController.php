@@ -256,6 +256,7 @@ class OrderController extends Controller
             })
             ->addColumn('action', function ($row) {
                 $editBtn = '<a href="' . route('admin.orders.edit', $row->id) . '" class="btn btn-sm btn-success"><i class="ri-pencil-fill"></i></a>';
+                $cetakBtn = '<a href="' . route('admin.orders.cetak', $row->id) . '" class="btn btn-sm btn-warning" target="_blank"><i class="ri-file-fill"></i></a>';
                 $deleteBtn = '<form action="' . route('admin.orders.destroy', $row->id) . '" method="POST" class="delete-form d-inline">
                     ' . csrf_field() . '
                     ' . method_field('DELETE') . '
@@ -263,9 +264,14 @@ class OrderController extends Controller
                         <i class="ri-delete-bin-fill"></i>
                     </button>
                 </form>';
-
-                return '<div class="d-flex gap-2">' . $editBtn . $deleteBtn . '</div>';
+            
+                if($row->status == 'waiting') {
+                    return '<div class="d-flex gap-2">' . $editBtn . $deleteBtn .'</div>';                    
+                } else {
+                    return '<div class="d-flex gap-2">' . $editBtn . $cetakBtn .'</div>';                    
+                }
             })
+            
             ->rawColumns(['action', 'status'])
             ->toJson();
     }
@@ -421,7 +427,21 @@ class OrderController extends Controller
     public function destroy(Order $order)
     {
         $order->delete();
-
         return redirect()->route('admin.orders.index')->with('success', 'Order berhasil dihapus!');
     }
+
+    public function cetakInvoice(Request $request, Order $order) {
+        $id = $request->id ?? $order->id;
+        
+        $data['data'] = Order::with('vehicles')
+        ->where('id', $id)->first();
+        
+        if(!empty($request->id)){
+            $html = view('admin.orders.cetak', $data)->render();
+            return response()->json(['status' => 'success', 'code' => 200, 'html' => $html]);
+        }else{
+            $data = $data['data'];
+            return view('admin.orders.cetak', compact('data'));            
+        }
+      }
 }

@@ -144,7 +144,7 @@
                         <!-- Tujuan -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="destinationInput" class="form-label">Tujuan</label>
+                                <label for="destinationInput" class="form-label">Tujuan Utama</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="text"
@@ -292,7 +292,7 @@
                         <!-- Sisa Bayar -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="remainingCostInput" class="form-label">Sisa Bayar</label>
+                                <label for="remainingCostInput" class="form-label">Sisa Ongkos</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="number"
@@ -334,7 +334,7 @@
                         <!-- Catatan Tambahan -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="additionalNotesInput" class="form-label">Catatan Tambahan</label>
+                                <label for="additionalNotesInput" class="form-label">Lain-lain</label>
                             </div>
                             <div class="col-lg-9">
                                 <textarea
