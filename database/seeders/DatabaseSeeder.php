@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             UsersSeeder::class,
             VehicleSeeder::class,
-            // DriverSeeder::class,
+            DriverSeeder::class,
             // OrderSeeder::class,
         ]);
     }

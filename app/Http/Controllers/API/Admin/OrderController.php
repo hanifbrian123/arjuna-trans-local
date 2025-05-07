@@ -32,18 +32,12 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Order::with(['user', 'driver', 'vehicles']);
+            $query = Order::with(['user', 'drivers', 'vehicles']);
 
-            // Filter by date range if provided
             if ($request->has('start_date') && $request->has('end_date')) {
-                $query->where(function ($q) use ($request) {
-                    $q->whereBetween('start_date', [$request->start_date, $request->end_date])
-                        ->orWhereBetween('end_date', [$request->start_date, $request->end_date])
-                        ->orWhere(function ($q2) use ($request) {
-                            $q2->where('start_date', '<=', $request->start_date)
-                                ->where('end_date', '>=', $request->end_date);
-                        });
-                });
+                //start date with range
+                $query->whereDate('start_date', '>=', $request->start_date)
+                    ->whereDate('start_date', '<=', $request->end_date);
             }
 
             // Filter by status if provided
@@ -52,14 +46,14 @@ class OrderController extends Controller
             }
 
             // Filter by driver if provided
-            if ($request->has('driver_id') && $request->driver_id) {
-                $query->where('driver_id', $request->driver_id);
-            }
+            // if ($request->has('driver_id') && $request->driver_id) {
+            //     $query->where('driver_id', $request->driver_id);
+            // }
 
             // Filter by vehicle/armada if provided
-            if ($request->has('vehicle_type') && $request->vehicle_type) {
-                $query->where('vehicle_type', $request->vehicle_type);
-            }
+            // if ($request->has('vehicle_type') && $request->vehicle_type) {
+            //     $query->where('vehicle_type', $request->vehicle_type);
+            // }
 
             // Order by start date (newest first) by default
             $query->orderBy('start_date', 'desc');
@@ -87,7 +81,7 @@ class OrderController extends Controller
     public function calendar(Request $request)
     {
         try {
-            $query = Order::with(['user', 'driver', 'vehicles'])
+            $query = Order::with(['user', 'drivers', 'vehicles'])
                 ->where('status', 'approved');
 
             // Filter by date range if provided
@@ -102,15 +96,15 @@ class OrderController extends Controller
                 });
             }
 
-            // Filter by driver if provided
-            if ($request->has('driver_id') && $request->driver_id) {
-                $query->where('driver_id', $request->driver_id);
-            }
+            // // Filter by driver if provided
+            // if ($request->has('driver_id') && $request->driver_id) {
+            //     $query->where('driver_id', $request->driver_id);
+            // }
 
-            // Filter by vehicle/armada if provided
-            if ($request->has('vehicle_type') && $request->vehicle_type) {
-                $query->where('vehicle_type', $request->vehicle_type);
-            }
+            // // Filter by vehicle/armada if provided
+            // if ($request->has('vehicle_type') && $request->vehicle_type) {
+            //     $query->where('vehicle_type', $request->vehicle_type);
+            // }
 
             $orders = $query->get();
 
@@ -128,7 +122,7 @@ class OrderController extends Controller
                         'destination' => $order->destination,
                         'route' => $order->route,
                         'pickup_address' => $order->pickup_address,
-                        'driver_name' => $order->driver ? $order->driver->user->name : null,
+                        'driver_name' => $order->drivers->first() ? $order->drivers->first()->user->name : null,
                         'vehicle_type' => $order->vehicle_type,
                         'status' => $order->status,
                     ],
@@ -218,7 +212,7 @@ class OrderController extends Controller
             }
 
             return $this->successResponse(
-                new OrderResource($order->load(['user', 'driver', 'vehicles'])),
+                new OrderResource($order->load(['user', 'drivers', 'vehicles'])),
                 'Pesanan berhasil dibuat',
                 201
             );
@@ -237,7 +231,7 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $order->load(['user', 'driver', 'vehicles']);
+        $order->load(['user', 'drivers', 'vehicles']);
 
         return $this->successResponse(
             new OrderResource($order),
@@ -277,7 +271,7 @@ class OrderController extends Controller
             }
 
             return $this->successResponse(
-                new OrderResource($order->fresh()->load(['user', 'driver', 'vehicles'])),
+                new OrderResource($order->fresh()->load(['user', 'drivers', 'vehicles'])),
                 'Pesanan berhasil diperbarui'
             );
         } catch (\Exception $e) {
