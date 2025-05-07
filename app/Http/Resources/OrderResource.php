@@ -42,7 +42,7 @@ class OrderResource extends JsonResource
             'status_label' => $this->getStatusLabel(),
             'additional_notes' => $this->additional_notes,
             'customer' => new UserResource($this->whenLoaded('user')),
-            'driver' => new DriverResource($this->whenLoaded('driver')),
+            'drivers' => DriverResource::collection($this->whenLoaded('drivers')),
             'vehicles' => VehicleResource::collection($this->whenLoaded('vehicles')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
@@ -65,3 +65,4 @@ class OrderResource extends JsonResource
         return $labels[$this->status] ?? $this->status;
     }
 }
+

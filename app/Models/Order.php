@@ -9,8 +9,9 @@ class Order extends Model
 {
     use HasFactory;
 
+    protected $table = 'orders';
+
     protected $fillable = [
-        'order_num',
         'name',
         'phone_number',
         'address',
@@ -22,14 +23,17 @@ class Order extends Model
         'vehicle_count',
         'vehicle_type',
         'driver_name',
+        'driver_id',
         'rental_price',
         'down_payment',
         'remaining_cost',
         'status',
         'additional_notes',
         'user_id',
-        'driver_id',
+        'order_num',
     ];
+
+    protected $guarded = ['id'];
 
     protected $casts = [
         'start_date' => 'datetime',
@@ -39,11 +43,6 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function driver()
-    {
-        return $this->belongsTo(Driver::class);
     }
 
     public function drivers()

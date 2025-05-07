@@ -22,9 +22,6 @@ class VehicleResource extends JsonResource
             'capacity' => $this->capacity,
             'facilities' => $this->facilities,
             'status' => $this->status,
-            'photo_url' => $this->when($this->getFirstMediaUrl('photos'), function () {
-                return $this->getFirstMediaUrl('photos');
-            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -28,11 +28,7 @@ class Driver extends Model
 
     public function orders()
     {
-        return $this->hasMany(Order::class);
-    }
-
-    public function ordersManyToMany()
-    {
         return $this->belongsToMany(Order::class, 'order_driver');
     }
 }
+

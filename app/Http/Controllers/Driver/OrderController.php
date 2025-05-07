@@ -345,6 +345,11 @@ class OrderController extends Controller
         // Sync vehicles
         $order->vehicles()->sync($validated['vehicle_ids']);
 
+        // Sync drivers if provided
+        if (isset($data['driver_ids'])) {
+            $order->drivers()->sync($data['driver_ids']);
+        }
+
         return redirect()->route('driver.orders.index')->with('success', 'Order berhasil diperbarui!');
     }
 
@@ -434,8 +439,14 @@ class OrderController extends Controller
         // Attach vehicles
         $order->vehicles()->attach($validated['vehicle_ids']);
 
+        // Attach drivers
+        if (isset($validated['driver_ids'])) {
+            $order->drivers()->attach($validated['driver_ids']);
+        }
+
         // Driver will be attached by admin later
 
         return redirect()->route('driver.orders.index')->with('success', 'Order berhasil dibuat!');
     }
 }
+
