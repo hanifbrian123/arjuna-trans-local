@@ -6,13 +6,23 @@ use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Driver\OrderController as DriverOrderController;
 use App\Http\Controllers\Admin\VehicleController as AdminVehicleController;
+use App\Http\Controllers\HomeCustomerController as CustomerController;
+
 
 Route::get('/', function () {
     return view('frontpage.landing');
 })->name('landing');
 
-Auth::routes(['register' => false, 'verify' => false]);
+# Landing page start
+Route::controller(CustomerController::class)->group(function () {
+    Route::group(['prefix' => 'customer', 'as' => 'customer.'], function () { # Home menu		
+		Route::get('/', 'formCust')->name('formCust');
+		Route::post('/customer-order', 'saveCust')->name('saveCust');		
+	});
+});
+# Landing page end
 
+Auth::routes(['register' => false, 'verify' => false]);
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

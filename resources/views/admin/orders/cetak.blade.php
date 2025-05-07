@@ -103,8 +103,8 @@
             background-repeat: no-repeat;
             opacity: 1;
             z-index: 2;
-            cursor: pointer;            
-        }        
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -112,22 +112,27 @@
     @if($data->status == 'canceled')
         <div class="image-watermark">
             <img src="{{ asset('assets/images/FrameCencel.png') }}" alt="Photo">
-        </div>        
+        </div>
+    @endif
+    @if($data->status == 'approved' && $data->remaining_cost == 0)
+    <div class="image-watermark">
+        <img src="{{ asset('assets/images/Frame 1022.png') }}" alt="Photo">
+    </div>
     @endif
 
     <div class="page-break">
         <!-- HEADER -->
         <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            
+
             <!-- LOGO KIRI -->
             <div class="logo">
                 <img src="{{ asset('assets/images/arjuna-logo.png') }}" width="80" height="80" alt="Logo Arjuna">
             </div>
-            
+
             <!-- TEKS KANAN -->
             <div class="header-text" style="text-align: right;">
                 <p style="margin: 0; color: #0066cc; font-size: 62px;">INVOICE</p>
-                <p style="margin: 0; color: #031425; font-size: 15px;">PESAN SEWA BUS DAN SURAT JALAN</p>
+                <p style="margin: 0; color: #031425; font-size: 15px;">PESAN SEWA BUS & SURAT JALAN</p>
                 <div class="no-seri" style="color: white; background-color: rgba(44, 180, 226, 0.517); padding: 5px 15px; font-weight: 500;">
                     NO : {{$data->order_num}}
                 </div>
@@ -139,13 +144,16 @@
         <div>
             <h3 style="margin: 5px 0;font-weight: bold;color:#0066cc;">Wisata, Privat Trip, Tour dan Rombongan</h3>
             <strong>Arjuna Trans</strong><br>
-            RT 01 RW 01 Ds Pesonon, Ds Blosok, Kec Trowulan – Kab. Mojokerto<br>
-            Telp: 0895384857965 / 088737845649
+            RT 01 RW 01 Ds Pesanan, Ds Bicak, Kec Trowulan – Kab. Mojokerto<br>
+            Telp: 081938845765 / 0838778345649
         </div>
 
         <div class="no-seri">
             @php
                 $plates = collect($data->vehicles)->pluck('license_plate')->implode('--');
+                $vehiclesInfo = collect($data->vehicles)
+                    ->map(fn($v) => $v->name . ' - ' . $v->type)
+                    ->implode(', ');
             @endphp
             <div style="margin-left: 25px">NOPOL : {{$plates}}</div>
         </div>
@@ -160,10 +168,10 @@
                         <td>: {{ \Carbon\Carbon::parse($data->start_date)->translatedFormat('d F Y') }} Jam : {{ \Carbon\Carbon::parse($data->start_time)->format('H:i') }}</td>
                     </tr>
                     <tr><td>Pemberangkatan</td><td>: {{$data->pickup_address}}</td></tr>
-                    <tr><td>Jumlah Bus</td><td>: {{$data->vehicle_count}}</td></tr>
-                    <tr><td>Harga Sewa</td><td>: Rp {{ number_format($data->rental_price, 0, ',', '.') }}</td></tr>
-                    <tr><td>Uang Muka</td><td>: Rp {{ number_format($data->down_payment, 0, ',', '.') }}</td></tr>
-                    <tr><td>Sisa Ongkos</td><td>: Rp {{ number_format($data->remaining_cost, 0, ',', '.') }}</td></tr>
+                    <tr><td>Jumlah Bus</td><td>: ({{$data->vehicle_count}}) {{$vehiclesInfo}}</td></tr>
+                    <tr><td>Harga Sewa</td><td>: Rp {{ number_format($data->rental_price, 0, ',', '.') }} ,-</td></tr>
+                    <tr><td>Uang Muka</td><td>: Rp {{ number_format($data->down_payment, 0, ',', '.') }} ,-</td></tr>
+                    <tr><td>Sisa Ongkos</td><td>: Rp {{ number_format($data->remaining_cost, 0, ',', '.') }} ,-</td></tr>
                     <tr><td>Lain - lain</td><td>: {{$data->additional_notes}}</td></tr>
                 </tbody>
             </table>
@@ -172,11 +180,11 @@
         <div style="margin-top: 30px; font-size: 14px; background-color: #f7f7f7; padding: 10px; border: 1px solid #ddd;">
             <strong>Catatan:</strong>
             <ol style="padding-left: 20px;">
-                <li>Apabila terjadi keadaan darurat (Force Majeur)...</li>
-                <li>Apabila mengalami kerusakan...</li>
-                <li>Bila terjadi perubahan jadwal/pembatalan...</li>
-                <li>Barang hilang di dalam bus...</li>
-                <li>Pelunasan pembayaran 3 hari sebelum...</li>
+                <li>Apabila terjadi keadaan darurat (Force Majeur) penyewa tidak berhak mengajukan klaim.</li>
+                <li>Apabila mengalami kerusakan, dan bus penggantinya tidak ada, maka uang sewa dikembalikan 100%.</li>
+                <li>Bila terjadi perubahan jadwal/pembatalan, harus memberitahukan 1 bulan sebelumnya. jika tidak uang tidak dapat diambil kembali.</li>
+                <li>Barang hilang di dalam bus, resiko Panitia Rombongan</li>
+                <li>Pelunasan pembayaran 3 hari sebelum bus berangkat</li>
                 <li>Apabila ada kenaikan BBM, tarif ikut naik.</li>
             </ol>
         </div>
@@ -188,15 +196,19 @@
                         <td style="width:50%; text-align:left; vertical-align:bottom;">
                             <p>Mojokerto, {{ \Carbon\Carbon::parse($data->created_at)->translatedFormat('d F Y') }}</p>
                             <p>Pengurus Arjuna Trans</p>
-                            <div class="signature-box">
-                                <p>DESSY ISTUNING TYAS</p>
-                                <div class="signature-line"></div>
+
+                            <div style="position: relative; width: fit-content; height: 100px;">
+                                <!-- Gambar tanda tangan dan stempel -->
+                                <img src="{{ asset('assets/images/Group 3.png') }}"
+                                     alt="Tanda Tangan + Stempel"
+                                     style="position: absolute; top: 0; left: 0; height: 100px; z-index: 1; opacity: 0.95;">
                             </div>
+                            <div class="signature-line"></div>
                         </td>
                         <td style="width:50%; text-align:center; vertical-align:bottom;">
                             <p>Pemesan</p>
                             <div class="signature-box-pemesan">
-                                <p>{{$data->name}}</p>
+                                <p style="margin: 0;">{{$data->name}}</p>
                                 <div class="signature-line"></div>
                             </div>
                         </td>

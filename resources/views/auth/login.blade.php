@@ -214,15 +214,15 @@
         <!-- Right Panel (Login Form) -->
         <div class="col-lg-4 auth-right-panel">
             <div class="auth-content">
-                <div class="text-center mb-4">
+                <div class="text-left mb-4">
                     <a href="{{ url('/') }}" class="d-inline-block">
                         <img src="{{ asset('assets/images/arjuna-logo.png') }}" alt="Arjuna Trans Logo" class="auth-logo">
                     </a>
                 </div>
 
                 <div class="mb-4">
-                    <h4 class="auth-title">Selamat Datang</h4>
-                    <p class="auth-subtitle">Silahkan masuk untuk melanjutkan ke {{ config('app.name') }}</p>
+                    <h4 class="auth-title" style="color: #4361ee !important">Selamat Datang</h4>
+                    <p class="auth-subtitle">Silahkan masuk untuk memulai aktivitas anda </p>
                 </div>
 
                 <form method="POST" action="{{ route('login') }}">

@@ -86,10 +86,10 @@
 
                         <hr>
 
-                        <!-- Tanggal Mulai -->
+                        <!-- Tanggal Pakai -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="startDateInput" class="form-label">Tanggal Mulai</label>
+                                <label for="startDateInput" class="form-label">Tanggal Pakai</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="datetime-local"
@@ -163,7 +163,7 @@
                         <!-- Rute -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="routeInput" class="form-label">Rute</label>
+                                <label for="routeInput" class="form-label">Route</label>
                             </div>
                             <div class="col-lg-9">
                                 <textarea
@@ -255,7 +255,7 @@
                                 <label for="rentalPriceInput" class="form-label">Harga Sewa</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="number"
+                                <input type="text"
                                        id="rentalPriceInput"
                                        name="rental_price"
                                        class="form-control @error('rental_price') is-invalid @enderror"
@@ -275,7 +275,7 @@
                                 <label for="downPaymentInput" class="form-label">Uang Muka</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="number"
+                                <input type="text"
                                        id="downPaymentInput"
                                        name="down_payment"
                                        class="form-control @error('down_payment') is-invalid @enderror"
@@ -295,7 +295,7 @@
                                 <label for="remainingCostInput" class="form-label">Sisa Ongkos</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="number"
+                                <input type="text"
                                        id="remainingCostInput"
                                        name="remaining_cost"
                                        class="form-control @error('remaining_cost') is-invalid @enderror"
@@ -414,6 +414,47 @@
 
             // Initial check for invoice button
             updateInvoiceButton();
+
+            //FORMAT RUPIAH
+            const rentalInput = document.getElementById('rentalPriceInput');
+            const dpInput = document.getElementById('downPaymentInput');
+            const remainingInput = document.getElementById('remainingCostInput');
+
+            function formatRupiah(angka, prefix = 'Rp ') {
+                let number_string = angka.replace(/[^,\d]/g, '').toString(),
+                    split = number_string.split(','),
+                    sisa = split[0].length % 3,
+                    rupiah = split[0].substr(0, sisa),
+                    ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+                if (ribuan) {
+                    let separator = sisa ? '.' : '';
+                    rupiah += separator + ribuan.join('.');
+                }
+
+                rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+                return prefix + rupiah;
+            }
+
+            function parseRupiah(rp) {
+                return parseInt(rp.replace(/[^0-9]/g, '')) || 0;
+            }
+
+            function updateFormattedInputs() {
+                rentalInput.value = formatRupiah(parseRupiah(rentalInput.value).toString());
+                dpInput.value = formatRupiah(parseRupiah(dpInput.value).toString());
+
+                const rental = parseRupiah(rentalInput.value);
+                const dp = parseRupiah(dpInput.value);
+                const remaining = Math.max(rental - dp, 0);
+                remainingInput.value = formatRupiah(remaining.toString());
+            }
+
+            // Event listener untuk kedua input
+            [rentalInput, dpInput].forEach(input => {
+                input.addEventListener('keyup', updateFormattedInputs);
+                input.addEventListener('change', updateFormattedInputs);
+            });
         });
     </script>
 @endpush

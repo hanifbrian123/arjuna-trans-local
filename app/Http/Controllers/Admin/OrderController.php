@@ -255,7 +255,7 @@ class OrderController extends Controller
                 return $row->created_at;
             })
             ->addColumn('action', function ($row) {
-                $editBtn = '<a href="' . route('admin.orders.edit', $row->id) . '" class="btn btn-sm btn-success"><i class="ri-pencil-fill"></i></a>';
+                $editBtn = '<a href="' . route('admin.orders.edit', $row->id) . '" class="btn btn-sm btn-primary"><i class="ri-edit-fill"></i></a>';
                 $cetakBtn = '<a href="' . route('admin.orders.cetak', $row->id) . '" class="btn btn-sm btn-warning" target="_blank"><i class="ri-file-fill"></i></a>';
                 $deleteBtn = '<form action="' . route('admin.orders.destroy', $row->id) . '" method="POST" class="delete-form d-inline">
                     ' . csrf_field() . '
@@ -296,9 +296,9 @@ class OrderController extends Controller
             'destination' => 'required|string|max:255',
             'route' => 'required|string|max:1000',
             'vehicle_count' => 'required|integer|min:1|max:10',
-            'rental_price' => 'required|numeric|min:0',
-            'down_payment' => 'nullable|numeric|min:0|lte:rental_price',
-            'remaining_cost' => 'nullable|numeric|min:0',
+            'rental_price' => 'required|min:0',
+            'down_payment' => 'nullable|min:0|lte:rental_price',
+            'remaining_cost' => 'nullable|min:0',
             'status' => 'required|in:waiting,approved,canceled',
             'additional_notes' => 'nullable|string|max:1000',
             'vehicle_ids' => 'required|array',
@@ -314,11 +314,12 @@ class OrderController extends Controller
             'driver_ids.required' => 'Pilih minimal satu driver.',
         ]);
 
+        $validated['rental_price'] = (int) str_replace(['Rp', '.', ' '], '', $request->rental_price);
+        $validated['down_payment'] = (int) str_replace(['Rp', '.', ' '], '', $request->down_payment ?? '0');
+
         if (isset($validated['rental_price'])) {
-            $rentalPrice = $validated['rental_price'];
-            $downPayment = $validated['down_payment'] ?? 0;
-            $validated['remaining_cost'] = $rentalPrice - $downPayment;
-        }
+            $validated['remaining_cost'] = $validated['rental_price'] - $validated['down_payment'];
+        }        
 
         $validated['user_id'] = auth()->id();
 
@@ -373,7 +374,7 @@ class OrderController extends Controller
     }
 
     public function update(Request $request, Order $order)
-    {
+    {        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
@@ -384,9 +385,9 @@ class OrderController extends Controller
             'destination' => 'required|string|max:255',
             'route' => 'required|string|max:1000',
             'vehicle_count' => 'required|integer|min:1|max:10',
-            'rental_price' => 'required|numeric|min:0',
-            'down_payment' => 'nullable|numeric|min:0|lte:rental_price',
-            'remaining_cost' => 'nullable|numeric|min:0',
+            'rental_price' => 'required',
+            'down_payment' => 'nullable|lte:rental_price',
+            'remaining_cost' => 'nullable',
             'status' => 'required|in:waiting,approved,canceled',
             'additional_notes' => 'nullable|string|max:1000',
             'vehicle_ids' => 'required|array',
@@ -402,11 +403,12 @@ class OrderController extends Controller
             'driver_ids.required' => 'Pilih minimal satu driver.',
         ]);
 
+        $validated['rental_price'] = (int) str_replace(['Rp', '.', ' '], '', $request->rental_price);
+        $validated['down_payment'] = (int) str_replace(['Rp', '.', ' '], '', $request->down_payment ?? '0');
+
         if (isset($validated['rental_price'])) {
-            $rentalPrice = $validated['rental_price'];
-            $downPayment = $validated['down_payment'] ?? 0;
-            $validated['remaining_cost'] = $rentalPrice - $downPayment;
-        }
+            $validated['remaining_cost'] = $validated['rental_price'] - $validated['down_payment'];
+        }      
 
         // Get the first driver for backward compatibility
         $primaryDriver = Driver::find($validated['driver_ids'][0]);

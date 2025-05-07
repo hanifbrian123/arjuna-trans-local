@@ -128,7 +128,7 @@
                         </div>
 
                         <!-- Tipe SIM -->
-                        <div class="row mb-3">
+                        {{-- <div class="row mb-3">
                             <div class="col-lg-3">
                                 <label class="form-label">Tipe SIM</label>
                             </div>
@@ -158,7 +158,7 @@
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
+                        </div> --}}
 
                         <!-- Status -->
                         <div class="row mb-3">

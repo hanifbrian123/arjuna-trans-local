@@ -10,6 +10,7 @@
     <script src='{{ asset('assets/libs/choices.js/public/assets/scripts/choices.min.js') }}'></script>
     <script src="{{ asset('assets/libs/sweetalert2/sweetalert2.min.js') }}"></script>
     <script src="{{ asset('assets/js/alert-utils.js') }}"></script>
+    <script src="{{ asset('assets/libs/choices.js/public/assets/scripts/choices.min.js') }}"></script>
 
     @stack('scripts')
 

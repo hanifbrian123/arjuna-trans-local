@@ -10,7 +10,7 @@
                         <div class="d-flex align-items-lg-center flex-lg-row flex-column">
                             <div class="flex-grow-1">
                                 <h4 class="fs-16 mb-1">Selamat datang, {{ Auth::user()->name }}!</h4>
-                                <p class="text-muted mb-0">Disini adalah halaman dashboard {{ Auth::user()->getRoleNames()->first() }}.</p>
+                                <p class="text-muted mb-0">DASHBOARD {{ Auth::user()->getRoleNames()->first() }}.</p>
                             </div>
                         </div><!-- end card header -->
                     </div>

@@ -87,10 +87,10 @@
 
                         <hr>
 
-                        <!-- Tanggal Mulai -->
+                        <!-- Tanggal Pakai -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="startDateInput" class="form-label">Tanggal Mulai</label>
+                                <label for="startDateInput" class="form-label">Tanggal Pakai</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="datetime-local"
@@ -145,7 +145,7 @@
                         <!-- Tujuan -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="destinationInput" class="form-label">Tujuan</label>
+                                <label for="destinationInput" class="form-label">Tujuan Utama</label>
                             </div>
                             <div class="col-lg-9">
                                 <input type="text"
@@ -164,7 +164,7 @@
                         <!-- Rute -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
-                                <label for="routeInput" class="form-label">Rute</label>
+                                <label for="routeInput" class="form-label">Route</label>
                             </div>
                             <div class="col-lg-9">
                                 <textarea
@@ -257,14 +257,13 @@
                                 <label for="rentalPriceInput" class="form-label">Harga Sewa</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="number"
-                                       id="rentalPriceInput"
-                                       name="rental_price"
-                                       class="form-control @error('rental_price') is-invalid @enderror"
-                                       placeholder="Rp - Masukkan harga sewa"
-                                       value="{{ old('rental_price', $order->rental_price) }}"
-                                       min="0"
-                                       required>
+                                <input type="text"
+                                id="rentalPriceInput"
+                                name="rental_price"
+                                class="form-control @error('rental_price') is-invalid @enderror"
+                                placeholder="Rp - Masukkan harga sewa"
+                                value="{{ old('rental_price', number_format($order->rental_price, 0, ',', '.')) }}"
+                                required>
                                 @error('rental_price')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -277,14 +276,13 @@
                                 <label for="downPaymentInput" class="form-label">Uang Muka</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="number"
-                                       id="downPaymentInput"
-                                       name="down_payment"
-                                       class="form-control @error('down_payment') is-invalid @enderror"
-                                       placeholder="Rp - Masukkan jumlah DP"
-                                       value="{{ old('down_payment', $order->down_payment) }}"
-                                       min="0"
-                                       required>
+                                <input type="text"
+                                id="downPaymentInput"
+                                name="down_payment"
+                                class="form-control"
+                                placeholder="Rp - Masukkan jumlah DP"
+                                value="{{ old('down_payment', number_format($order->down_payment, 0, ',', '.')) }}"
+                                required>
                                 @error('down_payment')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -297,13 +295,13 @@
                                 <label for="remainingCostInput" class="form-label">Sisa Bayar</label>
                             </div>
                             <div class="col-lg-9">
-                                <input type="number"
-                                       id="remainingCostInput"
-                                       name="remaining_cost"
-                                       class="form-control @error('remaining_cost') is-invalid @enderror"
-                                       placeholder="Rp - Sisa bayar akan dihitung otomatis"
-                                       value="{{ old('remaining_cost', $order->remaining_cost) }}"
-                                       readonly>
+                                <input type="text"
+                                id="remainingCostInput"
+                                name="remaining_cost"
+                                class="form-control"
+                                placeholder="Rp - Sisa bayar akan dihitung otomatis"
+                                value="{{ old('remaining_cost', number_format($order->remaining_cost, 0, ',', '.')) }}"
+                                readonly>
                                 @error('remaining_cost')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -352,8 +350,8 @@
                         </div>
 
                         <!-- Tombol Simpan -->
-                        <div class="text-end">
-                            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">Kembali</a>
+                        <div class="text-end" style="margin-right: 1100px;">
+                            <a href="{{ route('admin.orders.index') }}" class="btn btn-info">Kembali</a>
                             <button type="submit" class="btn btn-primary">Simpan</button>
                         </div>
                     </form>
@@ -434,6 +432,50 @@
 
             // Initial check for invoice button
             updateInvoiceButton();
-        });
+
+            //FORMAT RUPIAH
+            const rentalInput = document.getElementById('rentalPriceInput');
+            const dpInput = document.getElementById('downPaymentInput');
+            const remainingInput = document.getElementById('remainingCostInput');
+
+            function formatRupiah(angka, prefix = 'Rp ') {
+                let number_string = angka.replace(/[^,\d]/g, '').toString(),
+                    split = number_string.split(','),
+                    sisa = split[0].length % 3,
+                    rupiah = split[0].substr(0, sisa),
+                    ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+                if (ribuan) {
+                    let separator = sisa ? '.' : '';
+                    rupiah += separator + ribuan.join('.');
+                }
+
+                rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+                return prefix + rupiah;
+            }
+
+            function parseRupiah(rp) {
+                return parseInt(rp.replace(/[^0-9]/g, '')) || 0;
+            }
+
+            function updateFormattedInputs() {
+                rentalInput.value = formatRupiah(parseRupiah(rentalInput.value).toString());
+                dpInput.value = formatRupiah(parseRupiah(dpInput.value).toString());
+
+                const rental = parseRupiah(rentalInput.value);
+                const dp = parseRupiah(dpInput.value);
+                const remaining = Math.max(rental - dp, 0);
+                remainingInput.value = formatRupiah(remaining.toString());
+            }
+
+            // Event listener untuk kedua input
+            [rentalInput, dpInput].forEach(input => {
+                input.addEventListener('keyup', updateFormattedInputs);
+                input.addEventListener('change', updateFormattedInputs);
+            });
+
+            // Inisialisasi saat halaman load
+            updateFormattedInputs();
+        });        
     </script>
 @endpush
