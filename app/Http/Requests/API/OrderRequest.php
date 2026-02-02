@@ -35,17 +35,14 @@ class OrderRequest extends FormRequest
             'vehicle_count' => 'required|integer|min:1|max:10',
             'vehicle_type' => 'required|string|max:255',
             'rental_price' => 'required|numeric|min:0',
-            'down_payment' => 'nullable|numeric|min:0|lte:rental_price',
+            // 'down_payment' => 'nullable|numeric|min:0|lte:rental_price',
             'status' => 'required|in:waiting,approved,canceled',
             'additional_notes' => 'nullable|string|max:1000',
             'vehicle_ids' => 'required|array',
             'vehicle_ids.*' => 'exists:vehicles,id',
+            'driver_ids' => 'required|array',
+            'driver_ids.*' => 'exists:drivers,id',
         ];
-
-        // If this is an update request, make driver_id optional
-        if ($this->isMethod('put') || $this->isMethod('patch')) {
-            $rules['driver_id'] = 'nullable|exists:drivers,id';
-        }
 
         return $rules;
     }
@@ -86,6 +83,7 @@ class OrderRequest extends FormRequest
             'vehicle_ids.array' => 'ID kendaraan harus berupa array',
             'vehicle_ids.*.exists' => 'Kendaraan tidak ditemukan',
             'driver_id.exists' => 'Driver tidak ditemukan',
+            'driver_id.*.exists' => 'Salah satu driver tidak ditemukan',
         ];
     }
 

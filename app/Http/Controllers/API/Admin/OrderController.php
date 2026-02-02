@@ -10,6 +10,7 @@ use App\Http\Requests\API\OrderRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 /**
  * @group Pengelolaan Pesanan
@@ -188,7 +189,7 @@ class OrderController extends Controller
                 $validated['user_id'] = auth()->id();
             }
 
-            // Generate order number (format: AT-YYYYMMDD-XXX)
+            // Generate order number (format: ORD-YYYYMMDD-XXX)
             $date = now()->format('Ymd');
             $lastOrder = Order::whereDate('created_at', now())->latest()->first();
             $lastNumber = 0;
@@ -201,8 +202,10 @@ class OrderController extends Controller
             }
 
             $newNumber = $lastNumber + 1;
-            $validated['order_num'] = 'AT-' . $date . '-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
 
+            $primaryDriver = Driver::find($validated['driver_ids'][0]);        
+            $validated['driver_name'] = $primaryDriver->user->name;
+            $validated['order_num'] = 'ORD-' . $date . '-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);            
             // Create the order
             $order = Order::create($validated);
 
@@ -262,12 +265,30 @@ class OrderController extends Controller
                 $validated['remaining_cost'] = $validated['rental_price'] - ($order->down_payment ?? 0);
             }
 
-            // Update the order
-            $order->update($validated);
+            // Handle driver_id if it's an array (for many-to-many relationship)
+            if (isset($validated['driver_id']) && is_array($validated['driver_id'])) {
+                $driverIds = $validated['driver_id'];
+                // Remove driver_id from validated data to prevent it from being saved directly to the order
+                unset($validated['driver_id']);
+
+                // Update the order first without driver_id
+                $order->update($validated);
+
+                // Then sync the drivers
+                $order->drivers()->sync($driverIds);
+            } else {
+                // Update the order with all validated data
+                $order->update($validated);
+            }
 
             // Update vehicles if provided
             if (isset($validated['vehicle_ids']) && is_array($validated['vehicle_ids'])) {
                 $order->vehicles()->sync($validated['vehicle_ids']);
+            }
+
+            // Update drivers if provided
+            if (isset($validated['driver_ids']) && is_array($validated['driver_ids'])) {
+                $order->drivers()->sync($validated['driver_ids']);
             }
 
             return $this->successResponse(
@@ -368,4 +389,19 @@ class OrderController extends Controller
             return $this->errorResponse('Gagal memperbarui status pesanan: ' . $e->getMessage(), 500);
         }
     }
+
+    public function cetak(Request $request, Order $order)
+    {        
+        try {            
+            $data = Order::with('vehicles')->where('id', $order->id)->first();
+            return view('admin.orders.cetak', ['data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

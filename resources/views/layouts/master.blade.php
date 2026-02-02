@@ -9,9 +9,12 @@
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <meta content="Themesbrand" name="author" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-
+    <link rel="shortcut icon" href="{{ asset('assets/images/favicon_arjuna/android-chrome-512x512.png') }}">    
     @include('layouts.partials.styles')
-
+    
+    <!-- For development only -->
+    {{-- @vite(['resources/sass/app.scss', 'resources/js/app.js'])  --}}
+    
 </head>
 
 <body>

@@ -22,8 +22,12 @@
                 <div class="card-header">
                     <h5 class="card-title mb-0">Daftar Order</h5>
                     <div class="mt-2">
-                        <a href="{{ route('driver.orders.create') }}" class="btn btn-primary">
+                        <a href="{{ route('driver.orders.create') }}" class="btn btn-primary" title="Klik Untuk Menambah Data">
                             <i class="ri-add-line align-bottom me-1"></i> Buat Order
+                        </a>
+
+                        <button type="button" class="btn btn-info btn-view-trip" data-bs-toggle="modal" data-bs-target="#tripModal" title="Klik Untuk Melihat Data Trip Selesai">
+                            <i class="ri-eye-line align-bottom me-1"></i> Trip Selesai
                         </a>
                     </div>
                 </div>
@@ -64,18 +68,18 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table id="ordersTable" class="table nowrap align-middle" style="width:100%">
+                        <table id="ordersTable" class="table nowrap align-middle minimizeTable" style="width:100%">
                             <thead>
                                 <tr>
                                     <th>No</th>
                                     <th>No. Order</th>
-                                    <th>Tanggal Order</th>
+                                    <th>Tanggal Pakai</th>
                                     <th>Nama Pemesan</th>
                                     <th>Alamat Penjemputan</th>
                                     <th>Tujuan Utama</th>
-                                    <th>Tanggal Pakai</th>
                                     <th>Armada</th>
                                     <th>Status</th>
+                                    <th>Tanggal Order</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -87,6 +91,41 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Trip Selesai -->
+    <div class="modal fade" id="tripModal" tabindex="-1" aria-labelledby="tripModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tripModalLabel">Data Trip Selesai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table id="tripFinishedTable" class="table nowrap align-middle minimizeTable" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>No. Order</th>
+                                    <th>Tanggal Pakai</th>
+                                    <th>Nama Pemesan</th>
+                                    <th>Alamat Penjemputan</th>
+                                    <th>Tujuan Utama</th>
+                                    <th>Armada</th>
+                                    <th>Driver</th>
+                                    <th>Status</th>
+                                    <th>Tanggal Order</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('styles')
@@ -182,7 +221,8 @@
             var table = $('#ordersTable').DataTable({
                 processing: true,
                 serverSide: true,
-                responsive: true,
+                // responsive: true,
+                scrollX: !0,
                 ajax: {
                     url: "{{ route('driver.orders.index') }}",
                     data: function(d) {
@@ -210,29 +250,16 @@
                     {
                         data: 'order_num',
                         name: 'order_num',
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at',
-                        render: function(data) {
-                            return new Date(data).toLocaleDateString('id-ID', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric'
-                            });
+                        render: function(data, type, row) {
+                            if (!data) return '';
+                            const firstPart = data.substring(0, 4);
+                            const rest = data.substring(4);
+
+                            return `<div style="white-space: nowrap;">
+                                        <strong>${firstPart}</strong><br>
+                                        <span style="font-size: 9px !important;">${rest}</span>
+                                    </div>`;
                         }
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'pickup_address',
-                        name: 'pickup_address'
-                    },
-                    {
-                        data: 'destination',
-                        name: 'destination'
                     },
                     {
                         data: 'start_date',
@@ -259,7 +286,31 @@
 
                             return startDate + ', ' + startTime + '<br>' + endDate + ', ' + endTime;
                         }
+                    },               
+                    {
+                        data: 'nama_pemesan',
+                        name: 'name'
                     },
+                    {
+                        data: 'pickup_address',
+                        name: 'pickup_address',
+                        render: function(data, type, row) {
+                            if (type === 'display' && data.length > 20) {
+                                return data.substr(0, 20) + ' .....';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'destination',
+                        name: 'destination',
+                        render: function(data, type, row) {
+                            if (type === 'display' && data.length > 20) {
+                                return data.substr(0, 20) + ' .....';
+                            }
+                            return data;
+                        }
+                    },                  
                     {
                         data: 'vehicle_type',
                         name: 'vehicle_type'
@@ -267,6 +318,17 @@
                     {
                         data: 'status',
                         name: 'status'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        render: function(data) {
+                            return new Date(data).toLocaleDateString('id-ID', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                            });
+                        }
                     },
                     {
                         data: 'action',
@@ -301,6 +363,122 @@
                 $('#armadaFilter').val('').trigger('change');
                 table.draw();
             });
+
+            // Initialize DataTable for trip finished
+            let tripTableInitialized = false;
+            let tripTable;
+
+            $('.btn-view-trip').on('click', function () {
+                if (!tripTableInitialized) {
+                    tripTable = $('#tripFinishedTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        responsive: true,
+                        scrollX: !0,
+                        ajax: {
+                            url: '{{ route("driver.orders.trip-finished") }}',
+                            type: 'GET'
+                        },
+                        columns: [
+                        {
+                                data: 'DT_RowIndex',
+                                name: 'DT_RowIndex',
+                                orderable: false,
+                                searchable: false
+                            },
+                            {
+                                data: 'order_num',
+                                name: 'order_num',
+                            },
+                            {
+                                data: 'start_date',
+                                name: 'start_date',
+                                render: function(data, type, row) {
+                                    const startDate = new Date(data).toLocaleDateString('id-ID', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    });
+                                    const startTime = new Date(data).toLocaleTimeString('id-ID', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    });
+                                    const endDate = new Date(row.end_date).toLocaleDateString('id-ID', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    });
+                                    const endTime = new Date(row.end_date).toLocaleTimeString('id-ID', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    });
+
+                                    return startDate + ', ' + startTime + '<br>' + endDate + ', ' + endTime;
+                                }
+                            },
+                            {
+                                data: 'nama_pemesan',
+                                name: 'nama_pemesan'
+                            },
+                            {
+                                data: 'pickup_address',
+                                name: 'pickup_address',
+                                render: function(data, type, row) {
+                                    if (type === 'display' && data.length > 20) {
+                                        return data.substr(0, 20) + ' .....';
+                                    }
+                                    return data;
+                                }
+                            },
+                            {
+                                data: 'destination',
+                                name: 'destination',
+                                render: function(data, type, row) {
+                                    if (type === 'display' && data.length > 20) {
+                                        return data.substr(0, 20) + ' .....';
+                                    }
+                                    return data;
+                                }
+                            },                    
+                            {
+                                data: 'vehicle_type',
+                                name: 'vehicle_type'
+                            },
+                            {
+                                data: 'driver_name',
+                                name: 'driver_name'
+                            },
+                            {
+                                data: 'status',
+                                name: 'status'
+                            },
+                            {
+                                data: 'created_at',
+                                name: 'created_at',
+                                render: function(data) {
+                                    return new Date(data).toLocaleDateString('id-ID', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    });
+                                }
+                            },
+                            {
+                                data: 'action',
+                                name: 'action',
+                                orderable: false,
+                                searchable: false
+                            }
+                        ],
+                        order: [[5, 'desc']]
+                    });
+
+                    tripTableInitialized = true;
+                } else {
+                    tripTable.ajax.reload();
+                }
+            });
+
         });
     </script>
 @endpush

@@ -119,7 +119,7 @@
                 <!-- Table Section -->
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="paymentsTable" class="table nowrap align-middle" style="width:100%">
+                        <table id="paymentsTable" class="table nowrap align-middle minimizeTable" style="width:100%">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -138,12 +138,27 @@
                                 @foreach ($orders as $index => $order)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $order->order_num }}</td>
+                                        <td>
+                                            @php
+                                                $firstPart = substr($order->order_num, 0, 4);
+                                                $rest = substr($order->order_num, 4);
+                                            @endphp
+                                            <div style="white-space: nowrap;">
+                                                <strong>{{ $firstPart }}</strong><br>
+                                                <span style="font-size: 9px !important;">{{ $rest }}</span>
+                                            </div>
+                                        </td>
                                         <td>
                                             {{ $order->name }}<br>
-                                            <small>{{ $order->phone_number }}</small>
+                                            <small>
+                                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $order->phone_number) }}" target="_blank">
+                                                    {{ $order->phone_number }}
+                                                </a>
+                                            </small>
                                         </td>
-                                        <td>{{ $order->destination }}</td>
+                                        <td>
+                                            {{ Str::limit(Str::after($order->destination, 'xxxx'), 50) }}
+                                        </td>
                                         <td>{{ $order->start_date->format('d/m/Y') }} - {{ $order->end_date->format('d/m/Y') }}</td>
                                         <td>Rp {{ number_format($order->rental_price, 0, ',', '.') }}</td>
                                         <td>{{ $order->down_payment ? 'Rp ' . number_format($order->down_payment, 0, ',', '.') : 'Rp -' }}</td>
@@ -160,7 +175,7 @@
                                                 @if ($order->remaining_cost > 0)
                                                     <button type="button" class="btn btn-sm btn-primary btn-complete-payment"
                                                             data-id="{{ $order->id }}"
-                                                            data-remaining="{{ $order->remaining_cost }}">
+                                                            data-remaining="{{ $order->remaining_cost }}" title="Klik untuk pelunasan">
                                                         <i class="ri-checkbox-circle-line"></i> Pelunasan
                                                     </button>
                                                 @else
@@ -260,6 +275,7 @@
             // Initialize DataTable
             var table = $('#paymentsTable').DataTable({
                 responsive: true
+                scrollX: !0
             });
 
             // Initialize Flatpickr date range picker
@@ -343,7 +359,8 @@
             }
 
             // Handle payment completion
-            $('.btn-complete-payment').on('click', function() {
+            $(document).on('click', '.btn-complete-payment', function() {
+            // $('.btn-complete-payment').on('click', function() {
                 const orderId = $(this).data('id');
                 const remainingAmount = $(this).data('remaining');
                 const button = $(this);

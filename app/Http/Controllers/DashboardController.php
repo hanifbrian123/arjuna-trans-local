@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Driver;
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
@@ -33,13 +34,18 @@ class DashboardController extends Controller
         // Count all drivers
         $driverCount = Driver::count();
 
+        // Count all expenses
+        $expensesCount = Expense::count();
+
+        $financeReportCount = $expensesCount + $orderWaiting + Order::where('status', 'approved')->count();
+
         // Count orders that are currently active (between start and end date)
         $onTripCount = Order::where('status', 'approved')
             ->whereDate('start_date', '<=', now())
             ->whereDate('end_date', '>=', now())
             ->count();
 
-        return view('dashboard.admin', compact('orderWaiting', 'armadaCount', 'driverCount', 'onTripCount'));
+        return view('dashboard.admin', compact('orderWaiting', 'armadaCount', 'driverCount', 'onTripCount', 'expensesCount', 'financeReportCount'));
     }
 
     private function driverDashboard()

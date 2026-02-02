@@ -350,9 +350,9 @@
                         </div>
 
                         <!-- Tombol Simpan -->
-                        <div class="text-end" style="margin-right: 1100px;">
-                            <a href="{{ route('admin.orders.index') }}" class="btn btn-info">Kembali</a>
-                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        <div class="text-end">
+                            <a href="{{ route('admin.orders.index') }}" class="btn btn-default" style="background-color: #6c757d !important;color: #fff !important" title="Klik untuk kembali">Kembali</a>                            
+                            <button type="submit" class="btn btn-primary" title="Klik untuk simpan">Simpan</button>
                         </div>
                     </form>
                 </div>
@@ -397,12 +397,14 @@
                 }
 
                 // Add invoice button if status is approved
-                if (statusInput.value === 'approved') {
+                const order_approved = "{{ $order->status }}";
+                if (order_approved === 'approved') {
                     const invoiceBtn = document.createElement('button');
                     invoiceBtn.id = 'invoiceBtn';
                     invoiceBtn.type = 'button';
                     invoiceBtn.className = 'btn btn-success ms-2';
                     invoiceBtn.textContent = 'Invoice';
+                    invoiceBtn.style = 'margin-right: 10px;';
 
                     invoiceBtn.onclick = function cetakInvoiceButton() {
                         const id = "{{ $order->id }}";                        

@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -57,9 +58,9 @@ class OrderController extends Controller
                 'Arjuna Trans 03' => '#9C27B0', // purple
                 'Arjuna Trans 04' => '#34A853', // green
                 'Arjuna Trans 05' => '#FBBC05', // yellow/amber
-                'Hiace' => '#4285F4',           // bright blue
-                'Elf' => '#EA4335',             // bright red
-                'Bus' => '#9C27B0',             // purple
+                'NKR 55 LWB' => '#4285F4',           // bright blue
+                'HINO MDBL' => '#FBBC05',             // bright red
+                'HINO FB' => '#34A853',             // purple
                 'Avanza' => '#34A853',          // green
                 'Innova' => '#FBBC05'           // yellow/amber
             ];
@@ -177,21 +178,26 @@ class OrderController extends Controller
             $query->where('vehicle_type', $request->vehicle_type);
         }
 
-        $orders = $query->get();
+        $query->Where('end_date', '>', Carbon::now())            
+            ->orderByRaw("STR_TO_DATE(start_date, '%Y-%m-%d %H:%i:%s') ASC")                        
+            ->get();        
 
-        return DataTables::of($orders)
+        return DataTables::of($query)
             ->addIndexColumn()
             ->addColumn('status', function ($row) {
                 $statusClass = '';
                 $statusText = $row->status;
 
-                if ($row->status == 'waiting') {
+                if ($row->status == 'waiting' && $row->trip_completed == '0') {
                     $statusClass = 'badge bg-warning';
                     $statusText = 'Menunggu';
-                } elseif ($row->status == 'approved') {
+                } elseif ($row->status == 'approved' && $row->trip_completed == '0') {
                     $statusClass = 'badge bg-success';
                     $statusText = 'Disetujui';
-                } elseif ($row->status == 'canceled') {
+                } elseif ($row->status == 'approved' && $row->trip_completed == '1') {
+                    $statusClass = 'badge bg-info';
+                    $statusText = 'Terselesaikan';                
+                } elseif ($row->status == 'canceled' && $row->trip_completed == '0') {
                     $statusClass = 'badge bg-danger';
                     $statusText = 'Dibatalkan';
                 } else {
@@ -200,19 +206,44 @@ class OrderController extends Controller
 
                 return '<span class="' . $statusClass . '">' . $statusText . '</span>';
             })
+            ->addColumn('nama_pemesan', function ($row) {
+                $nama = $row->name ?? '-';
+                $noTelepon = $row->phone_number ?? '-';
+            
+                if ($noTelepon !== '-') {
+                    // Bersihkan karakter non-digit
+                    $noTeleponBersih = preg_replace('/[^0-9]/', '', $noTelepon);
+            
+                    // Ganti awalan 0 dengan +62
+                    if (substr($noTeleponBersih, 0, 1) === '0') {
+                        $noTeleponWA = '+62' . substr($noTeleponBersih, 1);
+                    } else {
+                        $noTeleponWA = '+62' . $noTeleponBersih; // fallback
+                    }
+            
+                    $linkTelepon = '<a href="https://wa.me/' . str_replace('+', '', $noTeleponWA) . '" target="_blank">' . $noTeleponWA . '</a>';
+                } else {
+                    $linkTelepon = '-';
+                }
+            
+                return $nama . '<br>' . $linkTelepon;
+            })                        
             ->addColumn('created_at', function ($row) {
                 return $row->created_at;
             })
             ->addColumn('action', function ($row) {
                 // Hanya tampilkan tombol edit jika status bukan approved
+                $cetakBtn = '<a href="' . route('driver.orders.cetak', $row->id) . '" class="btn btn-sm btn-warning" target="_blank"><i class="ri-file-fill" title="Cetak Order"></i></a>';
+                $editBtn = '<a href="' . route('driver.orders.edit', $row->id) . '" class="btn btn-sm btn-primary"><i class="ri-edit-fill" title="Edit Order"></i></a>';
                 if ($row->status != 'approved') {
-                    $editBtn = '<a href="' . route('driver.orders.edit', $row->id) . '" class="btn btn-sm btn-primary"><i class="ri-edit-fill"></i></a>';
                     return '<div class="d-flex gap-2">' . $editBtn . '</div>';
+                }else{
+                    return '<div class="d-flex gap-2">' . $editBtn . $cetakBtn . '</div>';
                 }
 
                 return '<div class="text-muted"><small>Tidak ada aksi</small></div>';
             })
-            ->rawColumns(['action', 'status'])
+            ->rawColumns(['action', 'status','nama_pemesan'])
             ->toJson();
     }
 
@@ -327,6 +358,8 @@ class OrderController extends Controller
             'vehicle_ids' => 'required|array',
             'vehicle_ids.*' => 'exists:vehicles,id',
         ])->validate();
+        
+        $validated['down_payment'] = (int) str_replace(['Rp', '.', ' '], '', $request->down_payment ?? '0');
 
         // Don't change the status
         $validated['status'] = $order->status;
@@ -366,6 +399,7 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
+        // return $request->all();
         // Prepare the request data
         $data = $request->all();
 
@@ -385,6 +419,7 @@ class OrderController extends Controller
                 // Keep original value if parsing fails
             }
         }
+        
 
         // Validate the data
         $validated = validator($data, [
@@ -398,13 +433,15 @@ class OrderController extends Controller
             'route' => 'required|string|max:1000',
             'vehicle_count' => 'required|integer|min:1|max:10',
             'rental_price' => 'present|numeric|min:0', // Changed from required to present
-            'down_payment' => 'required|numeric|min:0', // Changed from nullable to required
+            // 'down_payment' => 'required|numeric|min:0', // Changed from nullable to required
             'remaining_cost' => 'present|numeric|min:0', // Changed from nullable to present
             'additional_notes' => 'nullable|string|max:1000',
             'vehicle_ids' => 'required|array',
             'vehicle_ids.*' => 'exists:vehicles,id',
         ])->validate();
-
+        
+        $validated['down_payment'] = (int) str_replace(['Rp', '.', ' '], '', $request->down_payment ?? '0');
+        
         // Set status to waiting by default
         $validated['status'] = 'waiting';
 
@@ -447,6 +484,94 @@ class OrderController extends Controller
         // Driver will be attached by admin later
 
         return redirect()->route('driver.orders.index')->with('success', 'Order berhasil dibuat!');
+    }
+
+    public function cetakInvoice(Request $request, Order $order) 
+    {
+        $id = $request->id ?? $order->id;
+        
+        $data['data'] = Order::with('vehicles')
+        ->where('id', $id)->first();
+        
+        if(!empty($request->id)){
+            $html = view('driver.orders.cetak', $data)->render();
+            return response()->json(['status' => 'success', 'code' => 200, 'html' => $html]);
+        }else{
+            $data = $data['data'];
+            return view('driver.orders.cetak', compact('data'));            
+        }
+    }
+
+     public function tripFinished(Request $request)
+    {
+        $orders = Order::where(function ($q) {
+                $q->where('driver_id', auth()->user()->driver->id)
+                ->orWhere(function ($q2) {
+                    $q2->where('status', 'waiting')
+                    ->whereNull('driver_id');
+                });
+            })
+            // ->orderBy('start_date', 'asc')  // urutkan berdasarkan start_date terdekat
+            ->where('end_date', '<', Carbon::now())
+            ->get();
+
+
+        return DataTables::of($orders)
+            ->addIndexColumn()
+            ->addColumn('status', function ($row) {
+                $statusClass = '';
+                $statusText = $row->status;
+
+                if ($row->status == 'waiting' && $row->trip_completed == '0') {
+                    $statusClass = 'badge bg-warning';
+                    $statusText = 'Menunggu';
+                } elseif ($row->status == 'approved' && $row->trip_completed == '0') {
+                    $statusClass = 'badge bg-success';
+                    $statusText = 'Disetujui';
+                } elseif ($row->status == 'approved' && $row->trip_completed == '1') {
+                    $statusClass = 'badge bg-info';
+                    $statusText = 'Terselesaikan';                
+                } elseif ($row->status == 'canceled' && $row->trip_completed == '0') {
+                    $statusClass = 'badge bg-danger';
+                    $statusText = 'Dibatalkan';
+                } else {
+                    $statusClass = 'badge bg-secondary';
+                }
+
+                return '<span class="' . $statusClass . '">' . $statusText . '</span>';
+            })
+            ->addColumn('created_at', function ($row) {
+                return $row->created_at;
+            })
+            ->addColumn('nama_pemesan', function ($row) {
+                $nama = $row->name ?? '-';
+                $noTelepon = $row->phone_number ?? '-';
+            
+                if ($noTelepon !== '-') {
+                    // Bersihkan karakter non-digit
+                    $noTeleponBersih = preg_replace('/[^0-9]/', '', $noTelepon);
+            
+                    // Ganti awalan 0 dengan +62
+                    if (substr($noTeleponBersih, 0, 1) === '0') {
+                        $noTeleponWA = '+62' . substr($noTeleponBersih, 1);
+                    } else {
+                        $noTeleponWA = '+62' . $noTeleponBersih; // fallback
+                    }
+            
+                    $linkTelepon = '<a href="https://wa.me/' . str_replace('+', '', $noTeleponWA) . '" target="_blank">' . $noTeleponWA . '</a>';
+                } else {
+                    $linkTelepon = '-';
+                }
+            
+                return $nama . '<br>' . $linkTelepon;
+            })                        
+            ->addColumn('action', function ($row) {
+                $cetakBtn = '<a href="' . route('admin.orders.cetak', $row->id) . '" class="btn btn-sm btn-warning" target="_blank" title="klik untuk cetak"><i class="ri-file-fill"></i></a>';                                
+                return '<div class="d-flex gap-2">' .  $cetakBtn . '</div>';                
+            })
+            
+            ->rawColumns(['action', 'status','nama_pemesan'])
+            ->toJson();
     }
 }
 

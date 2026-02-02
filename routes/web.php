@@ -4,20 +4,38 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\DriverController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\ExpenseController as AdminExpenseController;
+use App\Http\Controllers\Admin\ExpenseCategoryController as AdminExpenseCategoryController;
+use App\Http\Controllers\Admin\FinanceController as AdminFinanceController;
 use App\Http\Controllers\Driver\OrderController as DriverOrderController;
 use App\Http\Controllers\Admin\VehicleController as AdminVehicleController;
 use App\Http\Controllers\HomeCustomerController as CustomerController;
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/clear-all', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+    Artisan::call('event:clear');
+    Artisan::call('optimize:clear');
+
+
+    return 'All cleared!';
+});
 
 
 Route::get('/', function () {
-    return view('frontpage.landing');
+    return redirect()->route('customer.formCust'); // redirect ke /customer
 })->name('landing');
 
 # Landing page start
 Route::controller(CustomerController::class)->group(function () {
-    Route::group(['prefix' => 'customer', 'as' => 'customer.'], function () { # Home menu		
+    Route::group(['prefix' => 'customer', 'as' => 'customer.'], function () { # Home menu
 		Route::get('/', 'formCust')->name('formCust');
-		Route::post('/customer-order', 'saveCust')->name('saveCust');		
+		Route::post('/customer-order', 'saveCust')->name('saveCust');
+        Route::get('/calendar', 'calendar')->name('calendar');
+        Route::get('/{order}/detail', 'detail')->name('detail');        
 	});
 });
 # Landing page end
@@ -37,9 +55,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{order}/edit', [AdminOrderController::class, 'edit'])->name('edit');
             Route::put('/{order}', [AdminOrderController::class, 'update'])->name('update');
             Route::delete('/{order}', [AdminOrderController::class, 'destroy'])->name('destroy');
-            Route::get('/{order}/detail', [AdminOrderController::class, 'detail'])->name('detail');
+            // Route::get('/admin/orders/{order}/detail', [AdminOrderController::class, 'detail'])->name('admin.orders.detail');
+            Route::get('/{order}/detail', [AdminOrderController::class, 'detail'])->name('detail');//detail calendar admin
             Route::get('/cetak', [AdminOrderController::class, 'cetakInvoice'])->name('cetak-form');
             Route::get('/{order}/cetak', [AdminOrderController::class, 'cetakInvoice'])->name('cetak');
+            Route::get('/admin/orders/trip-finished', [AdminOrderController::class, 'tripFinished'])->name('trip-finished');
+            Route::post('/{order}/finished', [AdminOrderController::class, 'finished'])->name('finished');
         });
 
         // Driver Management
@@ -51,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{driver}/edit', [DriverController::class, 'edit'])->name('edit');
             Route::put('/{driver}', [DriverController::class, 'update'])->name('update');
             Route::delete('/{driver}', [DriverController::class, 'destroy'])->name('destroy');
+            Route::post('/{driver}/reset', [DriverController::class, 'reset'])->name('reset');            
         });
 
         // Armada/Vehicle Management
@@ -69,6 +91,36 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [PaymentController::class, 'index'])->name('index');
             Route::post('/complete', [PaymentController::class, 'complete'])->name('complete');
         });
+
+        // Expenses Management
+        Route::prefix('expenses')->name('expenses.')->group(function () {
+            Route::get('/', [AdminExpenseController::class, 'index'])->name('index');
+            Route::get('/create', [AdminExpenseController::class, 'create'])->name('create');
+            Route::post('/create', [AdminExpenseController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [AdminExpenseController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [AdminExpenseController::class, 'update'])->name('update');
+            Route::delete('/{id}', [AdminExpenseController::class, 'destroy'])->name('destroy');
+            Route::get('data/filter', [AdminExpenseController::class, 'filterData'])->name('filter');
+        });
+
+        // Expenses Categories Management
+        Route::prefix('expense_categories')->name('expense_categories.')->group(function () {
+            Route::get('/', [AdminExpenseCategoryController::class, 'index'])->name('index');
+            Route::post('/', [AdminExpenseCategoryController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [AdminExpenseCategoryController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [AdminExpenseCategoryController::class, 'update'])->name('update');
+            Route::delete('/{id}', [AdminExpenseCategoryController::class, 'destroy'])->name('destroy');
+        });
+
+        // Finance
+        Route::prefix('finance')->name('finance.')->group(function () {
+            Route::get('/', [AdminFinanceController::class, 'index'])->name('index');
+            Route::get('/transactions', [AdminFinanceController::class, 'transactions'])->name('transactions');
+            Route::get('/summary', [AdminFinanceController::class, 'summary'])->name('summary');
+            Route::get('/charts', [AdminFinanceController::class, 'charts'])->name('charts');
+            Route::get('/export-excel', [AdminFinanceController::class, 'exportExcel'])->name('export.excel');
+            Route::get('/export-pdf', [AdminFinanceController::class, 'exportPdf'])->name('export.pdf');
+        });
     });
 
     // Driver Routes
@@ -81,7 +133,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', [DriverOrderController::class, 'store'])->name('store');
             Route::get('/{order}/edit', [DriverOrderController::class, 'edit'])->name('edit');
             Route::put('/{order}', [DriverOrderController::class, 'update'])->name('update');
-            Route::get('/{order}/detail', [DriverOrderController::class, 'detail'])->name('detail');
+            Route::get('/{order}/detail', [DriverOrderController::class, 'detail'])->name('detail');//detail calender driver
+            Route::get('/{order}/cetak', [DriverOrderController::class, 'cetakInvoice'])->name('cetak');
+            Route::get('/driver/orders/trip-finished', [DriverOrderController::class, 'tripFinished'])->name('trip-finished');
         });
 
 

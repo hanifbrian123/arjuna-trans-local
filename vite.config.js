@@ -11,4 +11,12 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        host: true,
+        hmr: {
+            host: 'arjuna-trans-two.test',
+            protocol: 'http',
+            port: 5173,
+        },
+    },
 });

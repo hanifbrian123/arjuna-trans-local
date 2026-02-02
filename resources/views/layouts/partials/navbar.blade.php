@@ -7,7 +7,7 @@
                 <img src="{{ asset('assets/images/logo-sm.png') }}" alt="" height="22">
             </span>
             <span class="logo-lg">
-                <img src="{{ asset('assets/images/arjuna-logo.png') }}" alt="" height="50">
+                <img src="{{ asset('assets/images/favicon_arjuna/android-chrome-512x512.png') }}" alt="" height="50">
             </span>
         </a>
         <!-- Light Logo-->
@@ -85,6 +85,20 @@
                     <li class="nav-item">
                         <a class="nav-link menu-link" href="{{ route('admin.vehicles.index') }}">
                             <i class="mdi mdi-car-multiple"></i> <span>Armada</span>
+                        </a>
+                    </li>
+
+                    <!-- Expense Management -->
+                    <li class="nav-item">
+                        <a class="nav-link menu-link" href="{{ route('admin.expenses.index') }}">
+                            <i class="mdi mdi-wallet"></i> <span>Pengeluaran</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Financial Report -->
+                    <li class="nav-item">
+                        <a class="nav-link menu-link" href="{{ route('admin.finance.index') }}">
+                            <i class="mdi mdi-cash-100"></i> <span>Laporan Kas</span>
                         </a>
                     </li>
                 @endrole
