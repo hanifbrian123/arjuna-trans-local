@@ -25,13 +25,14 @@ class ExpenseController extends Controller
 
     public function datatables(Request $request)
     {
-        $query = Expense::leftJoin('vehicles', 'expenses.vehicle_id', '=', 'vehicles.id')
-            ->leftJoin('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
-            ->select('expenses.*', 'vehicles.name as vehicle_name', 'expense_categories.code as category_code', 'expense_categories.name as category_name', 'expense_categories.pallete as pallete', 'vehicles.type as vehicle_type');
+        $query = Expense::leftJoin('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
+            ->select('expenses.*', 'expense_categories.code as category_code', 'expense_categories.name as category_name', 'expense_categories.pallete as pallete');
 
-        // Filter Armada
+        // Filter Armada (via many-to-many)
         if ($request->vehicle_id) {
-            $query->where('vehicles.id', $request->vehicle_id);
+            $query->whereHas('vehicles', function($q) use ($request) {
+                $q->where('vehicles.id', $request->vehicle_id);
+            });
         }
 
         // Filter Category
@@ -40,6 +41,8 @@ class ExpenseController extends Controller
         }
 
         // Filter tanggal
+        Log::info('debug filter', [$request->start_date , $request->end_date]);
+
         if ($request->start_date && $request->end_date) {
             $query->whereBetween('expenses.date', [
                 $request->start_date,
@@ -51,10 +54,10 @@ class ExpenseController extends Controller
             ->addIndexColumn()
             ->addColumn('date', fn($row) => $row->date)
             ->addColumn('vehicle', function($row) {
+                $vehicleNames = $row->vehicles->pluck('name')->join(', ');
                 return "
                     <div class='d-flex flex-column'>
-                        <span class='fw-semibold  text-primary'>{$row->vehicle_name}</span>
-                        <!-- <small class='text-muted'>{$row->vehicle_type}</small> -->
+                        <span class='fw-semibold text-primary'>{$vehicleNames}</span>
                     </div>
                 ";
             })
@@ -87,14 +90,20 @@ class ExpenseController extends Controller
                         // Search category code OR name
                         $q->where('expense_categories.code', 'like', "%{$search}%")
                         ->orWhere('expense_categories.name', 'like', "%{$search}%")
-                        ->orWhere('vehicles.name', 'like', "%{$search}%")
-                        ->orWhere('nominal', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhere('date', 'like', "%{$search}%")
-                        ;
+                        ->orWhere('expenses.nominal', 'like', "%{$search}%")
+                        ->orWhere('expenses.description', 'like', "%{$search}%")
+                        ->orWhere('expenses.date', 'like', "%{$search}%")
+                        // Search vehicles via whereHas
+                        ->orWhereHas('vehicles', function($q) use ($search) {
+                            $q->where('vehicles.name', 'like', "%{$search}%");
+                        });
                     });
                 }
             })
+            ->orderColumn('date', 'expenses.date $1')
+            ->orderColumn('nominal', 'expenses.nominal $1')
+            ->orderColumn('category', 'expense_categories.code $1')
+            ->orderColumn('description', 'expenses.description $1')
             ->rawColumns(['vehicle', 'category', 'description', 'nominal', 'action'])
             ->make(true);
     }
@@ -111,7 +120,8 @@ class ExpenseController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
-            'vehicle_id' => 'required|exists:vehicles,id',
+            'vehicle_id' => 'required|array',
+            'vehicle_id.*' => 'exists:vehicles,id',
             'expense_category_id' => 'required|exists:expense_categories,id',
             'nominal' => 'required',
             'description' => 'nullable|string',
@@ -120,13 +130,17 @@ class ExpenseController extends Controller
         // PARSE RUPIAH KE ANGKA MURNI
         $nominal = (int) preg_replace('/[^0-9]/', '', $request->nominal);
 
-        Expense::create([
+        $expense = Expense::create([
             'date' => $request->date,
-            'vehicle_id' => $request->vehicle_id,
             'expense_category_id' => $request->expense_category_id,
             'nominal' => $nominal,
             'description' => $request->description,
         ]);
+
+        // Attach multiple vehicles via many-to-many
+        if ($request->vehicle_id) {
+            $expense->vehicles()->attach($request->vehicle_id);
+        }
 
         return redirect()->route('admin.expenses.index')
             ->with('success', 'Pengeluaran berhasil ditambahkan.');
@@ -134,7 +148,7 @@ class ExpenseController extends Controller
     
     public function edit($id)
     {
-        $expense = Expense::with(['vehicle', 'category'])->findOrFail($id);
+        $expense = Expense::with(['vehicles', 'category'])->findOrFail($id);
 
         return view('admin.expenses.edit', [
             'expense' => $expense,
@@ -147,7 +161,8 @@ class ExpenseController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
-            'vehicle_id' => 'required|exists:vehicles,id',
+            'vehicle_id' => 'required|array',
+            'vehicle_id.*' => 'exists:vehicles,id',
             'expense_category_id' => 'required|exists:expense_categories,id',
             'nominal' => 'required',
             'description' => 'nullable|string',
@@ -160,11 +175,15 @@ class ExpenseController extends Controller
 
         $expense->update([
             'date' => $request->date,
-            'vehicle_id' => $request->vehicle_id,
             'expense_category_id' => $request->expense_category_id,
             'nominal' => $nominal,
             'description' => $request->description,
         ]);
+
+        // Sync multiple vehicles via many-to-many
+        if ($request->vehicle_id) {
+            $expense->vehicles()->sync($request->vehicle_id);
+        }
 
         return redirect()->route('admin.expenses.index')
             ->with('success', 'Data pengeluaran berhasil diperbarui.');
@@ -181,14 +200,15 @@ class ExpenseController extends Controller
 
     public function filterData(Request $request)
     {
-        $query = Expense::leftJoin('vehicles', 'expenses.vehicle_id', '=', 'vehicles.id')
-            ->leftJoin('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
-            ->select('expenses.*', 'vehicles.name as vehicle_name', 'expense_categories.code as category_code', 'expense_categories.name as category_name');
+        $query = Expense::leftJoin('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
+            ->select('expenses.*', 'expense_categories.code as category_code', 'expense_categories.name as category_name');
         
-        // Filter Armada
+        // Filter Armada (via many-to-many)
         if ($request->vehicle_id) {
-            $query->where('expenses.vehicle_id', $request->vehicle_id);
-            }
+            $query->whereHas('vehicles', function($q) use ($request) {
+                $q->where('vehicles.id', $request->vehicle_id);
+            });
+        }
             
         // Filter Category
         if ($request->category_code) {
@@ -203,20 +223,21 @@ class ExpenseController extends Controller
             ]);
         }
 
-
         $expenses = $query->get();
-        // Log::info('Debug filter data', ['get query'=>$query->get(), 'request vi'=>$request->vehicle_id]);
 
         // SUMMARY
         $totalExpense = $expenses->sum('nominal');
-        $totalVehicles = $expenses->groupBy('vehicle_id')->count();
+        
+        // Count distinct vehicles across all filtered expenses
+        $totalVehicles = $expenses->flatMap(function($expense) {
+            return $expense->vehicles->pluck('id');
+        })->unique()->count();
+        
         $avgPerVehicle = $totalVehicles > 0 ? $totalExpense / $totalVehicles : 0;
 
         // PIE CHART (by category)
         $categorySummary = $expenses->groupBy('expense_category_id')
             ->map(function ($g, $key) {
-
-                // Jika category null
                 $category = $g->first()->category;
 
                 return [
@@ -228,15 +249,20 @@ class ExpenseController extends Controller
             })
             ->values();
 
-        // BAR CHART (by vehicle)
-        $vehicleSummary = $expenses->groupBy('vehicle_id')
-            ->map(function ($g) {
-                return [
-                    'name' => $g->first()->vehicle->name,
-                    'total' => $g->sum('nominal'),
-                ];
-            })
-            ->values();
+        // BAR CHART (by vehicle) - group by vehicle across all expenses
+        $vehicleNominals = [];
+        foreach ($expenses as $expense) {
+            foreach ($expense->vehicles as $vehicle) {
+                if (!isset($vehicleNominals[$vehicle->id])) {
+                    $vehicleNominals[$vehicle->id] = [
+                        'name' => $vehicle->name,
+                        'total' => 0,
+                    ];
+                }
+                $vehicleNominals[$vehicle->id]['total'] += $expense->nominal;
+            }
+        }
+        $vehicleSummary = collect($vehicleNominals)->values();
         
         return response()->json([
             'summary' => [

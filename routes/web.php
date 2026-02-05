@@ -59,6 +59,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{order}/detail', [AdminOrderController::class, 'detail'])->name('detail');//detail calendar admin
             Route::get('/cetak', [AdminOrderController::class, 'cetakInvoice'])->name('cetak-form');
             Route::get('/{order}/cetak', [AdminOrderController::class, 'cetakInvoice'])->name('cetak');
+            // Omset report (per-armada cash-in)
+            Route::get('/omset', [AdminOrderController::class, 'omset'])->name('omset');
             Route::get('/admin/orders/trip-finished', [AdminOrderController::class, 'tripFinished'])->name('trip-finished');
             Route::post('/{order}/finished', [AdminOrderController::class, 'finished'])->name('finished');
         });

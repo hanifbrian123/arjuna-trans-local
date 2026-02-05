@@ -14,7 +14,6 @@ class Expense extends Model
         'description',
         'nominal',
         'expense_category_id',
-        'vehicle_id'
     ];
 
     public function category()
@@ -22,8 +21,8 @@ class Expense extends Model
         return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
     }
 
-    public function vehicle()
+    public function vehicles()
     {
-        return $this->belongsTo(Vehicle::class);
+        return $this->belongsToMany(Vehicle::class, 'expense_vehicle');
     }
 }

@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\Driver;
+use Carbon\Carbon;
 use App\Models\Order;
+use App\Models\Driver;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Yajra\DataTables\Facades\DataTables;
-use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -566,6 +567,91 @@ class OrderController extends Controller
             ->rawColumns(['action', 'status','nama_pemesan'])
             ->toJson();
     }
+
+    /**
+     * Omset per armada (distribute order cash-in equally among attached vehicles)
+     */
+        public function omset(Request $request)
+        {
+            $vehicleId = $request->vehicle_id ?? null;
+
+            // Vehicles list for dropdown
+            $vehicles = Vehicle::get();
+
+            $query = Order::with('vehicles')->orderBy('created_at', 'desc');
+
+            // Filter by selected vehicle (orders that include the vehicle)
+            if ($vehicleId) {
+                $query->whereHas('vehicles', function ($q) use ($vehicleId) {
+                    $q->where('vehicles.id', $vehicleId);
+                });
+            }
+
+            // Apply created_at date filter (created date range)
+            if ($request->has('start_date') && $request->has('end_date') && $request->start_date && $request->end_date) {
+                $start = $request->start_date . ' 00:00:00';
+                $end = $request->end_date . ' 23:59:59';
+                $query->whereBetween('created_at', [$start, $end]);
+            }
+
+            $orders = $query->get();
+
+            $rows = collect();
+            $totalCashIn = 0;
+            $totalOrder = 0;
+
+            foreach ($orders as $order) {
+                $cashIn = $order->rental_price ?? 0;
+                // $cashIn = (float) ($order->rental_price ?? 0) - (float) ($order->remaining_cost ?? 0);
+                $vehicleCount = $order->vehicles->count() ?: ($order->vehicle_count ?: 1);
+                $perVehicle = $vehicleCount ? ($cashIn / $vehicleCount) : 0;
+
+                if ($cashIn <= 0) {
+                    continue;
+                }
+
+                if ($order->vehicles->count() > 0) {
+                    foreach ($order->vehicles as $vehicle) {
+                        // When filtering by vehicle, only push rows for that vehicle
+                        if ($vehicleId && $vehicle->id != $vehicleId) {
+                            continue;
+                        }
+
+                        $rows->push((object) [
+                            'vehicle' => $vehicle,
+                            'created_at' => $order->created_at,
+                            'order_num' => $order->order_num,
+                            'cash_in' => $perVehicle,
+                            'destination' => $order->destination,
+                            'name' => $order->name
+                        ]);
+                        $totalCashIn += $perVehicle;
+                    }
+                } else {
+                    // Fallback: if filtering by vehicle skip rows without vehicle
+                    if ($vehicleId) {
+                        continue;
+                    }
+
+                    $rows->push((object) [
+                        'vehicle' => null,
+                        'created_at' => $order->created_at,
+                        'order_num' => $order->order_num,
+                        'cash_in' => $perVehicle,
+                        'destination' => $order->destination,
+                        'name' => $order->name
+                    ]);
+                    $totalCashIn += $perVehicle;
+                }
+                $totalOrder++;
+            }
+
+            $startDate = $request->start_date ?? null;
+            $endDate = $request->end_date ?? null;
+
+            $avgCashIn = $totalOrder ? ($totalCashIn / $totalOrder) : 0;
+            return view('admin.orders.omset', compact('rows', 'totalCashIn', 'startDate', 'endDate', 'avgCashIn', 'totalOrder', 'vehicles', 'vehicleId'));
+        }
 
     public function finished(Order $order)
     {

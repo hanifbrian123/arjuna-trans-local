@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Order;
 use App\Models\Driver;
 use App\Models\Vehicle;
-use App\Models\Order;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+
 class HomeCustomerController extends Controller
 {
     /**

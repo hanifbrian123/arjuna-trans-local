@@ -229,7 +229,7 @@
                 processing: true,
                 serverSide: true,
                 responsive: true,
-                scrollX: !0,
+                scrollX: false,
                 ajax: {
                     url: "{{ route('admin.orders.index') }}",
                     data: function(d) {
@@ -405,7 +405,7 @@
                         processing: true,
                         serverSide: true,
                         // responsive: true,
-                        scrollX: !0,
+                        scrollX: false,
                         ajax: {
                             url: '{{ route("admin.orders.trip-finished") }}',
                             type: 'GET'

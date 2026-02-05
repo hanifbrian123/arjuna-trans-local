@@ -30,7 +30,7 @@
                         <!-- Filter Section - Right Aligned -->
                         <div class="ms-auto d-flex flex-column flex-sm-row gap-2 align-items-center">
                             <!-- Date Range -->
-                            <div style="width: 180px;">
+                            <div style="width: 210px;">
                                 <input type="text" id="dateRangeFilter" class="form-control form-control-sm flatpickr-input" placeholder="Rentang Tanggal">
                             </div>
 
@@ -117,7 +117,7 @@
                 <!-- End Summary Cards -->
 
                 <!-- Table Section -->
-                <div class="card-body">
+                <div class="card-body" style="overflow-x:auto;">
                     <div class="table-responsive">
                         <table id="paymentsTable" class="table nowrap align-middle minimizeTable" style="width:100%">
                             <thead>
@@ -231,7 +231,7 @@
         .table-nowrap th,
         .table-nowrap td {
             white-space: nowrap;
-            overflow: hidden;
+            /* overflow: hidden; */
             text-overflow: ellipsis;
         }
 
@@ -274,8 +274,10 @@
         $(document).ready(function() {
             // Initialize DataTable
             var table = $('#paymentsTable').DataTable({
-                responsive: true
-                scrollX: !0
+                responsive: false,
+                scrollX: true,
+                // scrollCollapse: true,
+                // autoWidth: false
             });
 
             // Initialize Flatpickr date range picker
@@ -360,11 +362,14 @@
 
             // Handle payment completion
             $(document).on('click', '.btn-complete-payment', function() {
+                console.log('test');
+                
             // $('.btn-complete-payment').on('click', function() {
                 const orderId = $(this).data('id');
                 const remainingAmount = $(this).data('remaining');
                 const button = $(this);
-
+                console.log(orderId);
+                
                 Swal.fire({
                     title: 'Konfirmasi Pelunasan',
                     text: `Apakah Anda yakin ingin melunasi pembayaran sebesar Rp ${new Intl.NumberFormat('id-ID').format(remainingAmount)}?`,

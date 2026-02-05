@@ -268,8 +268,11 @@
                         // Filter tanggal
                         const dateRange = flatpickrInstance.selectedDates;
                         if (dateRange.length === 2) {
-                            d.start_date = dateRange[0].toISOString().split('T')[0];
-                            d.end_date = dateRange[1].toISOString().split('T')[0];
+                            d.start_date = formatDate(dateRange[0])
+                            d.end_date = formatDate(dateRange[1])
+                        } else if (dateRange.length === 1) {
+                            d.start_date = formatDate(dateRange[0])
+                            d.end_date = start_date;
                         }
                     }
                 },
@@ -293,10 +296,12 @@
                 let start_date;
                 let end_date;
                 if (dateRange.length === 2) {
-                    start_date = dateRange[0].toISOString().split('T')[0];
-                    end_date = dateRange[1].toISOString().split('T')[0];
+                    start_date = formatDate(dateRange[0])
+                    end_date = formatDate(dateRange[1])
+                } else if (dateRange.length === 1) {
+                    start_date = formatDate(dateRange[0]);
+                    end_date = start_date;
                 }
-                console.log(start_date, end_date);
                 
                 
                 $.ajax({
@@ -347,143 +352,5 @@
             
         })
     </script>
-{{-- <script>
-    let chartFinance, chartSaldo;
 
-    const ctxFinance = document.getElementById("chartFinance");
-    const ctxSaldo = document.getElementById("chartSaldo");
-
-    /* =====================================================
-     *  FETCH DATA (CALL BACKEND)
-     * ===================================================== */
-    function loadFinanceReport() {
-        const vehicle = $("#filterVehicle").val();
-        const dateRange = $("#filterDateRange").val().split(" to ");
-        const startDate = dateRange[0] || "";
-        const endDate = dateRange[1] || "";
-
-        $.ajax({
-            url: "{{ route('admin.finance.data') }}",
-            data: {
-                vehicle_id: vehicle,
-                start_date: startDate,
-                end_date: endDate,
-            },
-            success: function (res) {
-
-                // SUMMARY
-                $("#sumPendapatan").text("Rp " + res.summary.pendapatan.toLocaleString("id-ID"));
-                $("#sumPengeluaran").text("Rp " + res.summary.pengeluaran.toLocaleString("id-ID"));
-                $("#sumLabaRugi").text("Rp " + res.summary.laba_rugi.toLocaleString("id-ID"));
-
-                // CHART 1 (BAR + LINE)
-                updateFinanceChart(res.monthly);
-
-                // CHART 2 (SALDO)
-                updateSaldoChart(res.arus_saldo);
-
-                // TABLE
-                updateFinanceTable(res.transaksi);
-            }
-        });
-    }
-
-    /* =====================================================
-     *  FINANCE CHART
-     * ===================================================== */
-    function updateFinanceChart(data) {
-        if (chartFinance) chartFinance.destroy();
-
-        chartFinance = new Chart(ctxFinance, {
-            type: "bar",
-            data: {
-                labels: data.map(x => x.bulan),
-                datasets: [
-                    {
-                        label: "Pendapatan",
-                        data: data.map(x => x.pendapatan),
-                        backgroundColor: "rgba(59,130,246,0.8)",
-                    },
-                    {
-                        label: "Pengeluaran",
-                        data: data.map(x => x.pengeluaran),
-                        backgroundColor: "rgba(239,68,68,0.8)",
-                    },
-                    {
-                        type: "line",
-                        label: "Profit",
-                        data: data.map(x => x.profit),
-                        borderColor: "rgba(34,197,94,1)",
-                        borderWidth: 3,
-                        fill: false,
-                        tension: 0.3
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                interaction: { mode: "index", intersect: false },
-                plugins: { legend: { display: true } }
-            }
-        });
-    }
-
-    /* =====================================================
-     *  SALDO CHART
-     * ===================================================== */
-    function updateSaldoChart(data) {
-        if (chartSaldo) chartSaldo.destroy();
-
-        chartSaldo = new Chart(ctxSaldo, {
-            type: "line",
-            data: {
-                labels: data.map(x => x.bulan),
-                datasets: [
-                    {
-                        label: "Saldo Akumulasi",
-                        data: data.map(x => x.saldo),
-                        borderColor: "rgba(139,92,246,1)",
-                        backgroundColor: "rgba(139,92,246,0.2)",
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.2
-                    }
-                ]
-            }
-        });
-    }
-
-    /* =====================================================
-     *  TABLE
-     * ===================================================== */
-    function updateFinanceTable(rows) {
-        const tbody = $("#financeTableBody");
-        tbody.empty();
-
-        rows.forEach((r, i) => {
-            tbody.append(`
-                <tr>
-                    <td>${i+1}</td>
-                    <td>${r.date}</td>
-                    <td>${r.keterangan}</td>
-                    <td>${r.kode}</td>
-                    <td>${r.keluar ? "Rp "+r.keluar.toLocaleString("id-ID") : "-"}</td>
-                    <td>${r.masuk ? "Rp "+r.masuk.toLocaleString("id-ID") : "-"}</td>
-                    <td>${"Rp "+r.total.toLocaleString("id-ID")}</td>
-                </tr>
-            `);
-        });
-    }
-
-    /* INIT */
-    loadFinanceReport();
-
-    $("#btnFilter").click(loadFinanceReport);
-
-    $("#btnReset").click(() => {
-        $("#filterVehicle").val("");
-        $("#filterDateRange").val("");
-        loadFinanceReport();
-    });
-</script> --}}
 @endpush

@@ -94,7 +94,7 @@
                 <table class="table align-middle">
                     <thead>
                         <tr>
-                            <th>Warna</th>
+                            <th></th>
                             <th>Kode</th>
                             <th>Nama Kategori</th>
                             <th>Aksi</th>
@@ -175,8 +175,8 @@
                         <div class="d-flex flex-wrap gap-2">
                             @foreach ($colors as $color)
                                 <div class="edit-color circle border"
-                                     data-color="{{ $color }}"
-                                     style="width:30px;height:30px;border-radius:50%;background-color:{{ $color }};cursor:pointer;">
+                                    data-color="{{ $color }}"
+                                    style="width:30px;height:30px;border-radius:50%;background-color:{{ $color }};cursor:pointer;">
                                 </div>
                             @endforeach
                         </div>
@@ -196,6 +196,15 @@
 
 
 @endsection
+
+@push('styles')
+<style>
+    .table-responsive {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

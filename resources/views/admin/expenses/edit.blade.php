@@ -53,26 +53,7 @@
                             </div>
                         </div>
 
-                        <!-- ARMADA -->
-                        <div class="row mb-3">
-                            <div class="col-lg-3">
-                                <label class="form-label">Armada</label>
-                            </div>
-                            <div class="col-lg-9">
-                                <select name="vehicle_id"
-                                        class="form-select @error('vehicle_id') is-invalid @enderror"
-                                        required>
-                                    <option value="" disabled selected>Pilih Armada...</option>
-                                    @foreach ($vehicles as $vehicle)
-                                        <option value="{{ $vehicle->id }}" {{ $expense->vehicle_id == $vehicle->id ? 'selected' : '' }}>{{ $vehicle->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('vehicle_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
+                        
                         <!-- KATEGORI -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
@@ -100,8 +81,8 @@
                             </div>
                             <div class="col-lg-9">
                                 <input type="text"
-                                    id="nominal"
-                                    name="nominal"
+                                id="nominal"
+                                name="nominal"
                                     class="form-control @error('nominal') is-invalid @enderror"
                                     placeholder="Rp - Masukkan nominal"
                                     value="{{ old('nominal', number_format($expense->nominal, 0, ',', '.')) }}"
@@ -113,6 +94,30 @@
                             </div>
                         </div>
 
+                        <!-- ARMADA -->
+                        <div class="row mb-3">
+                            <div class="col-lg-3">
+                                <label class="form-label">Armada</label>
+                            </div>
+                            <div class="col-lg-9">
+                                <select name="vehicle_id[]"
+                                    class="form-select @error('vehicle_id') is-invalid @enderror"
+                                    data-choices data-choices-removeItem
+                                    multiple
+                                    size="5"
+                                    required>
+                                    @foreach ($vehicles as $vehicle)
+                                        <option value="{{ $vehicle->id }}"
+                                            {{ $expense->vehicles->contains($vehicle->id) ? 'selected' : '' }}>
+                                            {{ $vehicle->name }} ({{ $vehicle->type }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('vehicle_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
                         <!-- KETERANGAN -->
                         <div class="row mb-4">
                             <div class="col-lg-3">
@@ -123,7 +128,7 @@
                                           class="form-control @error('description') is-invalid @enderror"
                                           rows="3"
                                           placeholder="Masukkan detail transaksi...">{{ old('description', $expense->description) }}</textarea>
-                                @error('description')
+                                          @error('description')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

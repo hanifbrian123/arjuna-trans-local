@@ -56,6 +56,9 @@
                                 <li class="nav-item">
                                     <a href="{{ route('admin.payments.index') }}" class="nav-link">Laporan Payment</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.orders.omset') }}" class="nav-link">Laporan Omset</a>
+                                </li>
                             @endrole
 
                             @role('driver')

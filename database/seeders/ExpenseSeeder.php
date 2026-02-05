@@ -28,13 +28,21 @@ class ExpenseSeeder extends Seeder
 
             $categoryId = ExpenseCategory::where('code', $e['kodePengeluaran'])->value('id');
 
-            Expense::create([
+            // create expense record (no direct vehicle_id)
+            $expense = Expense::create([
                 'date' => $e['tanggal'],
                 'description' => $e['keterangan'],
                 'nominal' => $e['nominal'],
                 'expense_category_id' => $categoryId,
-                'vehicle_id' => rand(1, 23),
             ]);
+
+            // attach between 1 and 3 random vehicles to this expense via pivot
+            $vehicleCount = Vehicle::count();
+            if ($vehicleCount > 0) {
+                $pick = rand(1, min(3, $vehicleCount));
+                $vehicleIds = Vehicle::inRandomOrder()->take($pick)->pluck('id')->toArray();
+                $expense->vehicles()->attach($vehicleIds);
+            }
         }
     }
 

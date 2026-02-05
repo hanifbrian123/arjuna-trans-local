@@ -53,29 +53,7 @@
                             </div>
                         </div>
 
-                        <!-- ARMADA -->
-                        <div class="row mb-3">
-                            <div class="col-lg-3">
-                                <label class="form-label">Armada</label>
-                            </div>
-                            <div class="col-lg-9">
-                                <select name="vehicle_id"
-                                        class="form-select @error('vehicle_id') is-invalid @enderror"
-                                        required>
-                                    <option value="" disabled selected>Pilih Armada...</option>
-                                    @foreach ($vehicles as $vehicle)
-                                        <option value="{{ $vehicle->id }}"
-                                            {{ old('vehicle_id') == $vehicle->id ? 'selected' : '' }}>
-                                            {{ $vehicle->name }} ({{ $vehicle->type }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('vehicle_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
+                        
                         <!-- KATEGORI -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
@@ -85,7 +63,7 @@
                                 <select name="expense_category_id"
                                         class="form-select @error('expense_category_id') is-invalid @enderror"
                                         required>
-                                    <option value="" disabled selected>Pilih Kategori...</option>
+                                        <option value="" disabled selected>Pilih Kategori...</option>
                                     @foreach ($expense_categories as $cat)
                                         <option value="{{ $cat->id }}"
                                             {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>
@@ -95,10 +73,10 @@
                                 </select>
                                 @error('expense_category_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                    @enderror
                             </div>
                         </div>
-
+                        
                         <!-- NOMINAL -->
                         <div class="row mb-3">
                             <div class="col-lg-3">
@@ -114,6 +92,30 @@
                                     min="0"
                                     required>
                                 @error('nominal')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <!-- ARMADA -->
+                        <div class="row mb-3">
+                            <div class="col-lg-3">
+                                <label class="form-label">Armada</label>
+                            </div>
+                            <div class="col-lg-9">
+                                <select name="vehicle_id[]"
+                                    class="form-select @error('vehicle_id') is-invalid @enderror"
+                                    data-choices data-choices-removeItem
+                                    multiple
+                                    size="5"
+                                    required>
+                                    @foreach ($vehicles as $vehicle)
+                                        <option value="{{ $vehicle->id }}"
+                                            {{ in_array($vehicle->id, old('vehicle_id', [])) ? 'selected' : '' }}>
+                                            {{ $vehicle->name }} ({{ $vehicle->type }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('vehicle_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

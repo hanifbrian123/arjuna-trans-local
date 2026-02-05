@@ -88,9 +88,49 @@
             word-wrap: break-word;
         }
 
+        /* Wrap long destination/order texts */
+        .wrap-destination,
+        th.wrap-destination,
+        td.wrap-destination {
+            white-space: normal !important;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+            max-width: 300px;
+        }
+
         /* Agar tidak ada scroll horizontal di container */
         .table-responsive {
             overflow-x: hidden;
+        }
+
+        /* Force minimizeTable behavior on small screens for stable mobile layout */
+        @media (max-width: 767.98px) {
+            /* Apply minimize rules to our main tables */
+            .minimizeTable,
+            #omsetTable,
+            #paymentsTable,
+            #ordersTable {
+                font-size: 9px;
+                padding: 3px 4px;
+                white-space: normal !important;
+                table-layout: fixed !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                word-break: break-word !important;
+            }
+
+            /* ensure container doesn't produce horizontal scroll */
+            .table-responsive {
+                overflow-x: hidden !important;
+            }
+        }
+        .dataTables_wrapper {
+            overflow-x: auto !important;
+        }
+
+        table.dataTable {
+            width: 100% !important;
         }
     </style>
 

@@ -211,6 +211,17 @@
             text-overflow: ellipsis;
         }
 
+        /* Allow text wrapping for specific columns */
+        #expenseTable thead th:nth-child(2),
+        #expenseTable tbody td:nth-child(2),
+        #expenseTable thead th:nth-child(6),
+        #expenseTable tbody td:nth-child(6) {
+            white-space: normal !important;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+
         /* Ensure horizontal scrolling works well on mobile */
         @media (max-width: 767.98px) {
             .table-responsive {
@@ -260,6 +271,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function() {
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
             // Initialize Flatpickr date range picker
             const flatpickrInstance = flatpickr("#dateRangeFilter", {
                 mode: "range",
@@ -286,7 +304,7 @@
                 serverSide: true,
                 responsive: true,
                 scrollX: false,
-                order: [[4, 'asc']],
+                // order: [[4, 'asc']],
 
                 ajax: {
                     url: "{{ route('admin.expenses.index') }}",
@@ -301,14 +319,17 @@
                         // Filter tanggal
                         const dateRange = flatpickrInstance.selectedDates;
                         if (dateRange.length === 2) {
-                            d.start_date = dateRange[0].toISOString().split('T')[0];
-                            d.end_date = dateRange[1].toISOString().split('T')[0];
+                            d.start_date = formatDate(dateRange[0]);
+                            d.end_date = formatDate(dateRange[1]);
+                        } else if (dateRange.length  === 1) {
+                            d.start_date = formatDate(dateRange[0]);
+                            d.end_date = formatDate(dateRange[0]);
                         }
                     }
                 },
                 columns: [
                     {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-                    {data: 'vehicle', name: 'vehicles.name'},
+                    {data: 'vehicle', name: 'vehicles.name', orderable: false},
                     {data: 'nominal', name: 'nominal'},
                     {data: 'category', name: 'expense_categories.code'},
                     {data: 'date', name: 'date'},
@@ -355,6 +376,8 @@
             let categoryChart;
             let vehicleChart;
 
+            
+
             function loadCharts() {
                 // Filter Tanggal dari Flatpickr
                 const dateRangeChart = flatpickrInstance.selectedDates;
@@ -363,9 +386,13 @@
                 let end_date;
 
                 if (dateRangeChart.length === 2) {
+                    start_date = formatDate(dateRangeChart[0]);
+                    end_date = formatDate(dateRangeChart[1]);
+                } else if (dateRangeChart.length  === 1) {
                     start_date = dateRangeChart[0].toISOString().split('T')[0];
-                    end_date = dateRangeChart[1].toISOString().split('T')[0];
+                    end_date = start_date;
                 }
+                
                 $.ajax({
                     url: "{{ route('admin.expenses.filter') }}",
                     data: {
