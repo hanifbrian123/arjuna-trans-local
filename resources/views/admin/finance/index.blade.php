@@ -290,7 +290,6 @@
 
 
             function loadSummary() {
-                console.log('tresttttt');
                 
                 const dateRange = flatpickrInstance.selectedDates;
                 let start_date;

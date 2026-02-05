@@ -66,7 +66,18 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="dateRangeFilter" class="form-label">Tanggal</label>
-                            <input type="text" id="dateRangeFilter" class="form-control flatpickr-input" placeholder="Rentang Tanggal">
+
+                            <div class="input-group">
+                                <input type="text" id="dateRangeFilter" 
+                                    class="form-control flatpickr-input" 
+                                    placeholder="Rentang Tanggal">
+
+                                <button id="btnReset" 
+                                        class="btn btn-light border ms-1 d-flex align-items-center justify-content-center"
+                                        style="width: 40px; height: 38px;">
+                                    <i class="ri-refresh-line"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -512,6 +523,13 @@
 
             flatpickrInstance.config.onChange.push(function() {
                 loadCharts();
+            });
+
+            $('#btnReset').on('click', function () {
+                $('#dateRangeFilter').val('');
+                flatpickrInstance.clear();
+                loadCharts();
+                table.draw();
             });
 
             // First load
