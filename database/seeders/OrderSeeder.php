@@ -106,12 +106,12 @@ class OrderSeeder extends Seeder
         // Manually add realistic sample orders (from provided example)
         $manualOrders = [
             [
-                'order_num' => 'ORD-20250506-005',
+                'order_num' => 'ORD-20260506-005',
                 'name' => 'PUPUT INDAH SARI',
                 'phone_number' => '-',
                 'address' => 'Pantai Malang Selatan',
-                'start_date' => now()->create(2025,5,10),
-                'end_date' => now()->create(2025,5,11),
+                'start_date' => now()->create(2026,5,10),
+                'end_date' => now()->create(2026,5,11),
                 'pickup_address' => 'Pantai Malang Selatan',
                 'destination' => 'PANTAI MALANG SELATAN',
                 'route' => 'Surabaya - Malang - Pantai Malang Selatan',
@@ -122,12 +122,12 @@ class OrderSeeder extends Seeder
                 'status' => 'approved',
             ],
             [
-                'order_num' => 'ORD-20250506-006',
+                'order_num' => 'ORD-20260506-006',
                 'name' => 'FAIZIN',
                 'phone_number' => '-',
                 'address' => 'Jogoroto',
-                'start_date' => now()->create(2025,6,12),
-                'end_date' => now()->create(2025,6,12),
+                'start_date' => now()->create(2026,6,12),
+                'end_date' => now()->create(2026,6,12),
                 'pickup_address' => 'Jogoroto',
                 'destination' => 'JOGOROTO',
                 'route' => 'Surabaya - Jombang - Jogoroto',
